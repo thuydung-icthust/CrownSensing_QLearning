@@ -1,5 +1,6 @@
 import csv
 from scipy.spatial import distance
+from tensorflow.python.ops.gen_random_ops import TruncatedNormal
 import Parameter as para
 import os.path
 import numpy as np
@@ -43,34 +44,67 @@ class Network:
         com_func(self)
         return True
 
-    def run_per_second(self, t, optimizer, com_func = communicate_func, log_file = "./log/logfile.txt"):
+    def run_per_second(self, t, optimizer = None, com_func = communicate_func, log_file = "./log/logfile.txt"):
         self.communicate(com_func)
         
-    def simulate(self, optimizer = None, com_func = None, maxtime = 36000, logfile = "./log/logfile.txt"):
-        t = 0
-        while(t <= maxtime):
+    def simulate(self,start_t = 0, optimizer = None, com_func = None, maxtime = 36000, logfile = "./log/logfile.txt"):
+        t = start_t
+        while(t < maxtime+start_t):
             self.update_node_position(t)
             nb_package = self.gnb.total_receiving
             # if os.path.isfile(logfile):
             #     f = open(logfile, "a+")
             # else:
             # str_to_log = str("t = ", t, "Total package receive: \n", nb_package)
-            str_to_log = "\nt = " + str(t) + " Total package receive: " + str(nb_package)
-            if t % 100 == 0:
-               print(str_to_log)
+            if t%self.step_length == 0:
+                str_to_log = "\nt = " + str(t) + " Total package receive: " + str(nb_package)
+                with open(logfile, "a+") as f:
+                    f.write(str_to_log)
+                    f.close()
+            # if t % 100 == 0:
+            #    print(str_to_log)
             if t % self.step_length == 0:
                 get_current_state(self)
                 # print(get_current_map_state(self))
-                print(get_reward(self, self.step_length))
-                reset_tracking(self)
+                # print(get_reward(self, self.step_length))
+                # reset_tracking(self)
             #if t % 100 == 0:
                 #print_node_position(self)
-            with open(logfile, "a+") as f:
-                f.write(str_to_log)
-                f.close()
+            
             self.run_per_second(t, optimizer, com_func, logfile)
             t+=1
 
+    def reset(self):
+        self.not_tracking = np.zeros((para.n_size*para.n_size, 1))
+        self.update_node_position(0)
+    def get_state(self):
+        state = np.zeros((self.num_node, 2))
+        for i, node in enumerate(self.list_node):
+            state[i] = node.longitude, node.latitude
+        state = np.reshape(state, (self.num_node*2,1))
+        return state
+    
+    def get_reward(self):
+        return get_reward(self, self.step_length)
+    
+    def check_terminate(self, step):
+        if step*self.step_length == para.max_t:
+            return True
+        return False
+
+    def step(self, action, step, ep):
+        new_prob = 0.1*(action+1)
+        for node in self.list_node:
+            node.update_prob(new_prob)
+        # t = 0
+        # while t < self.step_length:
+        #     self.run_per_second(t, communicate_func)
+        #     t+= 1
+        self.simulate(start_t=step*self.step_length+1, com_func=communicate_func, maxtime=self.step_length, logfile="./log/logfile_" + str(ep) + ".txt")
+
+    
+
+    
 
 
 

@@ -21,3 +21,4 @@ eng_per_package = 0.02
 record_time_step = 600
 min_time_step = 25200
 max_time_step = 82800
+max_t = 36000
