@@ -56,7 +56,7 @@ for episode_i in range(0, dqn_conf.N_EPISODE):
             if True:
                 # get_current_state(net)
                 action = dqnAgent.act(s) # Getting an action from the DQN model from the state (s)
-                net.step(action, step, episode_i) # Performing the action in order to obtain the new state
+                net.step(action, step, episode_i, "dqn") # Performing the action in order to obtain the new state
                 s_next = net.get_state()  # Getting a new state
                 reward = net.get_reward() # Getting a reward
                 terminate = net.check_terminate(step) # checking the end status

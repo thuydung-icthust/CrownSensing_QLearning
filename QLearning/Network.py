@@ -44,7 +44,7 @@ class Network:
         com_func(self)
         return True
 
-    def run_per_second(self, t, optimizer = None, com_func = communicate_func, log_file = "./log/logfile.txt"):
+    def run_per_second(self, optimizer = None, com_func = communicate_func, log_file = "./log/logfile.txt"):
         self.communicate(com_func)
         
     def simulate(self,start_t = 0, optimizer = None, com_func = None, maxtime = 36000, logfile = "./log/logfile.txt"):
@@ -61,17 +61,27 @@ class Network:
                 with open(logfile, "a+") as f:
                     f.write(str_to_log)
                     f.close()
-            # if t % 100 == 0:
-            #    print(str_to_log)
+            if t % 100 == 0 and optimizer != "dqn":
+                str_to_log = "\nt = " + str(t) + " Total package receive: " + str(nb_package)
+                print(str_to_log)
             if t % self.step_length == 0:
                 get_current_state(self)
                 # print(get_current_map_state(self))
                 # print(get_reward(self, self.step_length))
                 # reset_tracking(self)
+                if optimizer != "dqn":
+                    # print(get_current_map_state(self))
+                    print(get_reward(self, self.step_length))
+                    reset_tracking(self)
+                    self.gnb.reset_prob()
+                    print(self.gnb.node_prob)
+
+
+                
             #if t % 100 == 0:
                 #print_node_position(self)
             
-            self.run_per_second(t, optimizer, com_func, logfile)
+            self.run_per_second(com_func=com_func, log_file=logfile)
             t+=1
 
     def reset(self):
@@ -92,7 +102,7 @@ class Network:
             return True
         return False
 
-    def step(self, action, step, ep):
+    def step(self, action, step, ep, optimizer = "dqn"):
         new_prob = 0.1*(action+1)
         for node in self.list_node:
             node.update_prob(new_prob)

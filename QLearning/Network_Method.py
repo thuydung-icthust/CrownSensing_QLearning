@@ -90,7 +90,7 @@ def get_reward(net, delta_t):
         factor2 = 0.0
 
     
-    return (para.theta * factor1 - para.gamma * factor2) + 0.1*factor3
+    return (para.theta * factor1 - para.gamma * factor2) - 0.1*factor3
 
 
 def reset_tracking(net):
