@@ -3,9 +3,10 @@ from scipy.spatial import distance
 import Parameter as para
 from Node_Method import to_string, find_receiver, update_postion
 
+
 class Node:
-    def __init__(self,car_name =None, location_list=None, cover_radius = para.cover_radius, cover_time = para.cover_time, current_velocity = None, 
-    energy = 100.0, prob=para.prob, avg_energy = 0.0, id = None, is_active = True):
+    def __init__(self, car_name=None, location_list=None, cover_radius=para.cover_radius, cover_time=para.cover_time, current_velocity=None,
+                 energy=100.0, prob=para.prob, avg_energy=0.0, id=None, is_active=True):
         self.location_list = location_list
         self.car_name = car_name
         self.longitude = 0.0
@@ -13,10 +14,11 @@ class Node:
         self.cover_radius = cover_radius
         self.cover_time = cover_time
         self.energy = energy
-        self.prob = prob #freq to sent message
-        self.total_sending = 0 #total messages sent to gnb from last checkpoint
-        self.used_energy = 0.0 #energy was used from last check point to now
-        self.check_point = [{"E_current": self.energy, "total_sending": self.total_sending}]
+        self.prob = prob  # freq to sent message
+        self.total_sending = 0  # total messages sent to gnb from last checkpoint
+        self.used_energy = 0.0  # energy was used from last check point to now
+        self.check_point = [{"E_current": self.energy,
+                             "total_sending": self.total_sending}]
         # self.len_cp = len_cp  # length of check point list
         self.id = id  # identify of sensor
         self.neighbor = []  # neighborhood of sensor
@@ -26,7 +28,7 @@ class Node:
         self.current_row = 0
         self.moving_step = (0.0, 0.0)
         update_postion(self, 0)
-    
+
     def set_check_point(self, t):
         if len(self.check_point) >= self.len_cp:
             self.check_point.pop(0)
@@ -34,9 +36,9 @@ class Node:
             {"E_current": self.energy, "time": t, "total_sending": self.total_sending - self.check_point[-1]["total_sending"]})
         # self.avg_energy = self.check_point[-1]["avg_e"]
         self.used_energy = 0.0
-        self.total_sending = 0    
+        self.total_sending = 0
 
-    def send(self, net=None, package = None, receiver=find_receiver, is_energy_info = False):
+    def send(self, net=None, package=None, receiver=find_receiver, is_energy_info=False):
         # if not self.is_active:
         #     return
         # d0 = math.sqrt(para.EFS / para.EMP)
@@ -63,21 +65,20 @@ class Node:
             self.is_active = False
 
     def print_node(self, func=to_string):
-        func(self)    
+        func(self)
 
-    def update_prob(self, new_prob = None):
+    def update_prob(self, new_prob=None):
         self.prob = new_prob
 
     # def update_node_location(self, new_location = None):
     #     self.location = new_location
 
-    def update_loc(self, long = None, lat = None):
-        self.longitude = long
-        self.latitude = lat
-    def update_position(self, time_s = None):
+    def update_loc(self, long=None, lat=None):
+        self.longitude = round(long, 0)
+        self.latitude = round(lat, 0)
+
+    def update_position(self, time_s=None):
         update_postion(self, time_s)
+
     def description(self):
         to_string(self)
-
-    
-

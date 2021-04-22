@@ -5,11 +5,13 @@ import Parameter as para
 
 
 def to_string(node):
-    print("Id =", node.id,"RefName =", node.car_name, "prob = ", node.prob, "Location long =", node.longitude, "Location lat =", node.latitude, "Energy =", node.energy,
+    print("Id =", node.id, "RefName =", node.car_name, "prob = ", node.prob, "Location long =", node.longitude, "Location lat =", node.latitude, "Energy =", node.energy,
           "Total time sent: ", node.total_sending)
+
 
 def find_receiver(node):
     return -1
+
 
 def update_postion(node, t):
     start_t = para.min_time_step
@@ -25,20 +27,17 @@ def update_postion(node, t):
             node.current_row += 1
         while node.location_list[0][node.current_row+1] == node.location_list[0][node.current_row]:
             node.current_row += 1
-        
-        
+
         current_x = node.location_list[1][node.current_row]
         current_y = node.location_list[2][node.current_row]
-        node.update_loc(long = current_x, lat = current_y)
+        node.update_loc(long=current_x, lat=current_y)
         node.moving_step = update_moving_step(node)
     else:
         current_x = node.longitude + node.moving_step[0]
         current_y = node.latitude + node.moving_step[1]
-        node.update_loc(long = current_x, lat = current_y)
+        node.update_loc(long=current_x, lat=current_y)
 
 
-
-    
 # def find_receiver(node, net):
 #     """
 #     find receiver node
@@ -57,10 +56,14 @@ def update_postion(node, t):
 #         return node.neighbor[id_min]
 
 def update_moving_step(node):
-    distance_x = node.location_list[1][node.current_row + 1] - node.location_list[1][node.current_row]
-    distance_y = node.location_list[2][node.current_row + 1] - node.location_list[2][node.current_row]
-    time_moving = node.location_list[0][node.current_row + 1] - node.location_list[0][node.current_row]
+    distance_x = node.location_list[1][node.current_row +
+                                       1] - node.location_list[1][node.current_row]
+    distance_y = node.location_list[2][node.current_row +
+                                       1] - node.location_list[2][node.current_row]
+    time_moving = node.location_list[0][node.current_row +
+                                        1] - node.location_list[0][node.current_row]
     return (distance_x / time_moving, distance_y / time_moving)
+
 
 def find_receiver(node, net):
     if not node.is_active:
@@ -73,7 +76,7 @@ def find_receiver(node, net):
     #     return candidate[id_min]
     # else:
     #     return -1
-    return 0 # 0 means the gnb server
+    return 0  # 0 means the gnb server
 
 
 def request_function(node, mc, t):
