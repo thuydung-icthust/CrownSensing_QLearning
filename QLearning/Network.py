@@ -104,8 +104,8 @@ class Network:
         state_retval = state.flatten().tolist()
         return np.array(state_retval)
 
-    def get_reward(self):
-        return get_reward(self, self.step_length)
+    def get_reward(self, t):
+        return get_reward(self, self.step_length, t=t)
 
     def check_terminate(self, step):
         if step*self.step_length == para.max_t:
