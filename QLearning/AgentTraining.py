@@ -13,7 +13,7 @@ import numpy as np
 
 maxtime = 3600
 input_num = 16
-dqnAgent = DQN(input_num, dqn_conf.ACTIONNUM)
+dqnAgent = DQN(input_num, dqn_conf.ACTIONNUM, gpu=dqn_conf.USE_GPU)
 memory = Memory(dqn_conf.MEMORY_SIZE)
 
 
