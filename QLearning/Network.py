@@ -20,7 +20,7 @@ class Network:
         self.min_y = min_y
         self.max_x = max_x
         self.max_y = max_y
-        self.not_tracking = np.zeros((para.n_size*para.n_size, 1))
+        self.not_tracking = np.zeros((para.n_size * para.n_size, 1))
 
     def get_prob(self):
         prob_list = [0.0 for i in range(0, self.num_node)]
@@ -50,14 +50,10 @@ class Network:
 
     def simulate(self, start_t=0, optimizer="dqn", com_func=None, maxtime=36000, logfile="./log/logfile.txt"):
         t = start_t
-        while(t < maxtime+start_t):
+        while(t < maxtime + start_t):
             self.update_node_position(t)
             nb_package = self.gnb.total_receiving
-            # get_current_map_state(self)
-            # if os.path.isfile(logfile):
-            #     f = open(logfile, "a+")
-            # else:
-            # str_to_log = str("t = ", t, "Total package receive: \n", nb_package)
+
             if t % self.step_length == 0:
                 str_to_log = "\nt = " + \
                     str(t) + " Total package receive: " + str(nb_package)
@@ -94,21 +90,20 @@ class Network:
             t += 1
 
     def reset(self):
-        self.not_tracking = np.zeros((para.n_size*para.n_size, 1))
+        self.not_tracking = np.zeros((para.n_size * para.n_size, 1))
         self.update_node_position(0)
 
     def get_state(self):
         state = np.zeros((self.num_node, 2))
         for i, node in enumerate(self.list_node):
             state[i] = node.longitude, node.latitude
-        state_retval = state.flatten().tolist()
-        return np.array(state_retval)
+        return state
 
     def get_reward(self, t):
         return get_reward(self, self.step_length, t=t)
 
     def check_terminate(self, step):
-        if step*self.step_length == para.max_t:
+        if step * self.step_length == para.max_t:
             return True
         return False
 
@@ -118,21 +113,21 @@ class Network:
             prob.append(node.prob)
         return prob
 
-    def update_node_uniform_prob(self, new_prob):
-        for node in self.list_node:
-            node.update_prob(new_prob)
+    def update_nodes_prob(self, new_prob):
+        for i in range(len(self.list_node)):
+            self.list_node[i].update_prob(new_prob[i])
 
     def update_node_discrete_prob(self, new_prob):
         for i, node in enumerate(self.list_node):
             node.update_prob(new_prob[i])
 
     def step(self, action, step, ep, optimizer="dqn"):
-        new_prob = round(0.1*(action+1), 1)
-        self.update_node_uniform_prob(new_prob)
+        new_prob = np.array([round(0.1 * (action[i] + 1), 1) for i in range(action.shape[0])])
+        self.update_nodes_prob(new_prob)
 
         # t = 0
         # while t < self.step_length:
         #     self.run_per_second(t, communicate_func)
         #     t+= 1
-        self.simulate(start_t=step*self.step_length+1, com_func=communicate_func,
+        self.simulate(start_t=step * self.step_length + 1, com_func=communicate_func,
                       maxtime=self.step_length, logfile="./log/logfile_" + str(ep) + ".txt", optimizer=optimizer)
