@@ -71,26 +71,33 @@ class DQN:
         return np.array(actions)
 
     def replay(self, samples, batch_size):
+        # print(samples)
         for idx in range(len(self.models)):
             inputs = np.zeros((batch_size, self.input_dim))
             targets = np.zeros((batch_size, self.action_space))
 
             for i in range(0, batch_size):
-                state = samples[0][i, idx]
+                state = samples[0][i]
                 action = samples[1][i, idx]
                 reward = samples[2][i]
-                new_state = samples[3][i, idx]
+                new_state = samples[3][i]
                 done = samples[4][i]
 
                 inputs[i, :] = state
+                # print(str(i) + ' ' + str(idx))
+                # print(state)
+                # print(action)
+                # print(reward)
+                # print(new_state)
+                # print(done)
                 targets[i, :] = self.target_models[idx].predict(
-                    state)
+                    state.reshape(1, -1))
                 if done:
                     # if terminated, only equals reward
                     targets[i, action] = reward
                 else:
                     Q_future = np.max(self.target_models[idx].predict(
-                        new_state))
+                        new_state.reshape(1, -1)))
                     targets[i, action] = reward + Q_future * self.gamma
             # Training
             loss = self.models[idx].train_on_batch(inputs, targets)

@@ -52,6 +52,6 @@ class Memory:
             a = self.actions[idx, :]
             r = self.rewards[idx, :]
             d = self.dones[idx, :]
-            s2 = self.states2[idx, :, :]
+            s2 = self.states2[idx, :]
 
             return list([s, a, r, s2, d])
