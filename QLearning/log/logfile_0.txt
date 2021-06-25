@@ -1,8 +1,0 @@
-
-t = 30 Total package receive: 114
-t = 30 Total package receive: 143
-t = 60 Total package receive: 22
-t = 90 Total package receive: 187
-t = 120 Total package receive: 87
-t = 150 Total package receive: 114
-t = 180 Total package receive: 41

@@ -106,7 +106,7 @@ class Network:
 
     def get_reward(self, t):
         return get_reward(self, self.step_length, t=t)
-
+    
     def check_terminate(self, step):
         if step*self.step_length == para.max_t:
             return True
