@@ -123,5 +123,5 @@ class DQN:
             with open(path + model_name + '_' + str(i) + ".json", "w") as json_file:
                 json_file.write(model_json)
                 # serialize weights to HDF5
-                self.model.save_weights(path + model_name + '_' + str(i) + ".h5")
+                self.models[i].save_weights(path + model_name + '_' + str(i) + ".h5")
                 print("Saved model to disk")
