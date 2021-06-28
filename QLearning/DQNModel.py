@@ -39,8 +39,12 @@ class DQN:
         self.tau = tau
 
         # Create networks
-        self.model = self.create_model()
-        self.target_model = self.create_model()
+        if not model:
+            self.model = self.create_model()
+            self.target_model = self.create_model()
+
+        else:
+            self.model = model
 
         if gpu:
             config = tf.compat.v1.ConfigProto()
@@ -104,7 +108,7 @@ class DQN:
         self.target_model.set_weights(target_weights)
 
     def update_epsilon(self):
-        self.epsilon = self.epsilon*self.epsilon_decay
+        self.epsilon = self.epsilon * self.epsilon_decay
         self.epsilon = max(self.epsilon_min, self.epsilon)
 
     def save_model(self, path, model_name):
