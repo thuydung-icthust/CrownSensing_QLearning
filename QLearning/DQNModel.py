@@ -1,8 +1,8 @@
 from random import random, randrange
 import tensorflow as tf
-from keras import backend as K
-from keras import optimizers
-from keras.layers import Dense, Activation
+from tensorflow.keras import backend as K
+from tensorflow.keras import optimizers
+from tensorflow.keras.layers import Dense, Activation
 from keras.models import Sequential
 import numpy as np
 from warnings import simplefilter
@@ -63,7 +63,7 @@ class DQN:
         model.add(Dense(self.action_space))
         model.add(Activation('linear'))
         sgd = optimizers.SGD(lr=self.learning_rate, decay=1e-6, momentum=0.95)
-        model.compile(optimizer=sgd, loss='mse')
+        model.compile(optimizer='adam', loss='mse')
         return model
 
     def act(self, state):
