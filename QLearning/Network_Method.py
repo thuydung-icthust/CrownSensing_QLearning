@@ -92,21 +92,21 @@ def get_reward(net, delta_t, t=0, logfile="log/dqn_logfile.txt"):
     total_cell = para.n_size * para.n_size
     state_rw = get_current_map_state(net)
     untracking = np.sum(net.not_tracking) * net.step_length
-    factor1 = sum(state_rw)/total_cell  # covering factor
-    factor2 = untracking/(delta_t*total_cell)  # total cell untrack
-    factor3 = net.gnb.total_receiving/(net.step_length*net.num_node)
+    factor1 = sum(state_rw) / total_cell  # covering factor
+    factor2 = untracking / (delta_t * total_cell)  # total cell untrack
+    factor3 = net.gnb.total_receiving / (net.step_length * net.num_node)
     with open(logfile, "a+") as f:
         str_to_log = str(t) + "," + str(factor1) + "," + str(factor2) + \
-            ","+str(net.gnb.total_receiving) + "\n"
+            "," + str(net.gnb.total_receiving) + "\n"
         f.write(str_to_log)
         f.close()
     if delta_t == 0:
         factor2 = 0.0
 
-    return (para.theta * factor1 - para.gamma * factor2) - 0.025*factor3
+    return (para.theta * factor1 - para.gamma * factor2) - 0.025 * factor3
 
 
 def reset_tracking(net):
-    net.not_tracking = np.zeros((para.n_size*para.n_size, 1))
+    net.not_tracking = np.zeros((para.n_size * para.n_size, 1))
     net.gnb.msg_from_node = [0 for i in range(0, net.gnb.total_node)]
     net.gnb.total_receiving = 0

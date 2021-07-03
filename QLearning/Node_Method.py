@@ -23,9 +23,9 @@ def update_postion(node, t):
     if t % 600 == 0:
         if t == 0:
             node.current_row = 0
-        elif node.location_list[0][node.current_row+1] == t + start_t:
+        elif node.location_list[0][node.current_row + 1] == t + start_t:
             node.current_row += 1
-        while node.location_list[0][node.current_row+1] == node.location_list[0][node.current_row]:
+        while node.location_list[0][node.current_row + 1] == node.location_list[0][node.current_row]:
             node.current_row += 1
 
         current_x = node.location_list[1][node.current_row]
@@ -33,8 +33,8 @@ def update_postion(node, t):
         node.update_loc(long=current_x, lat=current_y)
         node.moving_step = update_moving_step(node)
     else:
-        current_x = node.longitude + node.moving_step[0]
-        current_y = node.latitude + node.moving_step[1]
+        current_x = node.longitude + node.moving_step[0] * para.update_step
+        current_y = node.latitude + node.moving_step[1] * para.update_step
         node.update_loc(long=current_x, lat=current_y)
 
 

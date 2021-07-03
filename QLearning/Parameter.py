@@ -22,5 +22,6 @@ eng_per_package = 0.02
 record_time_step = 600
 min_time_step = 25200
 max_time_step = 82800
+update_step = 30
 max_t = 36000
 random_log_file = "./log/random.txt"
