@@ -16,7 +16,6 @@ num_nodes = 8
 dqnAgent = DQN(num_nodes, dqn_conf.ACTIONNUM)
 memory = Memory(dqn_conf.MEMORY_SIZE)
 
-
 inputfile = "input/carname.txt"
 # Create header for saving DQN learning file
 now = datetime.datetime.now()  # Getting the latest datetime
@@ -61,6 +60,7 @@ for episode_i in range(0, dqn_conf.N_EPISODE):
             # Performing the action in order to obtain the new state
             net.step(action, step, episode_i, "dqn")
             s_next = net.get_state()  # Getting a new state
+            print(f'State: {s_next}')
             reward = net.get_reward(
                 t=step * net.step_length)  # Getting a reward
             terminate = net.check_terminate(
