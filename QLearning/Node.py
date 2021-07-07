@@ -74,8 +74,8 @@ class Node:
     #     self.location = new_location
 
     def update_loc(self, long=None, lat=None):
-        self.longitude = round(long, 0)
-        self.latitude = round(lat, 0)
+        self.longitude = long
+        self.latitude = lat
 
     def update_position(self, time_s=None):
         update_postion(self, time_s)

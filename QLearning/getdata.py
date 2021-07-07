@@ -58,9 +58,12 @@ def read_csv_data(filename):
     car_data.head()
     car_name = car_data['VehicleRef'].values[0]
     time_recored = car_data['RecordedAtTime']
-    long, lat = car_data['VehicleLocation.Longitude'], car_data['VehicleLocation.Latitude']
+    long, lat = car_data['VehicleLocation.Longitude'].values, car_data['VehicleLocation.Latitude'].values
 
-    return_value = np.vstack((time_recored.values, long.values, lat.values))
+    long_norm = long / abs(long).max()
+    lat_norm = lat / abs(lat).max()
+
+    return_value = np.vstack((time_recored.values, lat_norm, long_norm))
     max_x = np.amax(return_value, axis=1)[1] + para.cover_radius
     max_y = np.amax(return_value, axis=1)[2] + para.cover_radius
     min_x = np.amin(return_value, axis=1)[1] - para.cover_radius
@@ -69,4 +72,4 @@ def read_csv_data(filename):
 
 
 if __name__ == '__main__':
-    pass
+    read_data()

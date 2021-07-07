@@ -5,7 +5,7 @@ import Parameter as para
 import os.path
 import numpy as np
 
-from Network_Method import get_current_map_state, get_reward, uniform_com_func, communicate_func, print_node_position, get_current_state, get_current_map_state, get_reward, reset_tracking
+from Network_Method import *
 
 
 class Network:
@@ -20,6 +20,7 @@ class Network:
         self.min_y = min_y
         self.max_x = max_x
         self.max_y = max_y
+        self.map_grid = get_grid_boundary(self.max_x, self.max_y, self.min_x, self.min_y)
         self.not_tracking = np.zeros((para.n_size * para.n_size, 1))
 
     def get_prob(self):
@@ -42,52 +43,37 @@ class Network:
             node.update_position(t)
 
     def communicate(self, com_func=communicate_func):
-        com_func(self)
-        return True
+        return com_func(self)
 
     def run_per_second(self, optimizer=None, com_func=communicate_func, log_file="./log/logfile.txt"):
-        self.communicate(com_func)
+        return self.communicate(com_func)
 
     def simulate(self, start_t=0, optimizer="dqn", com_func=None, maxtime=36000, logfile="./log/logfile.txt"):
         t = start_t
+        avg_reward = np.zeros(self.num_node)
+
         while(t < maxtime + start_t):
             self.update_node_position(t)
-            nb_package = self.gnb.total_receiving
+            is_sent = self.run_per_second(com_func=com_func, log_file=logfile)
+
+            # nb_package = self.gnb.total_receiving
+            avg_reward += get_reward_v2(self, self.step_length, is_sent, t)
 
             if t % self.step_length == 0:
-                str_to_log = "\nt = " + \
-                    str(t) + " Total package receive: " + str(nb_package)
+                avg_reward /= self.step_length
                 with open(logfile, "a+") as f:
-                    f.write(str_to_log)
+                    f.write(f't={t}, avg_reward={avg_reward}\n')
                     f.close()
-            if t % 100 == 0 and optimizer != "dqn":
-
-                str_to_log = "\nt = " + \
-                    str(t) + " Total package receive: " + str(nb_package)
-                print(str_to_log)
-            if t % self.step_length == 0:
                 # get_current_state(self)
                 # print(get_current_map_state(self))
                 # print(get_reward(self, self.step_length))
                 # reset_tracking(self)
-
-                if optimizer != "dqn":
-                    # print(get_current_map_state(self))
-                    # get_current_map_state(self)
-                    print(get_reward(self, self.step_length, t=t,
-                          logfile=para.random_log_file))
-                    reset_tracking(self)
-                    new_prob = self.gnb.reset_prob()
-                    self.update_node_discrete_prob(new_prob)
-                else:
-                    print(get_reward(self, self.step_length, t))
-                print(self.get_prob())
-
             # if t % 100 == 0:
                 # print_node_position(self)
 
-            self.run_per_second(com_func=com_func, log_file=logfile)
             t += 1
+
+        return avg_reward
 
     def reset(self):
         self.not_tracking = np.zeros((para.n_size * para.n_size, 1))
@@ -97,7 +83,7 @@ class Network:
         state = np.zeros((self.num_node, 2))
         for i, node in enumerate(self.list_node):
             state[i] = node.longitude, node.latitude
-        return state
+        return state.reshape(1, -1)
 
     def get_reward(self, t):
         return get_reward(self, self.step_length, t=t)
@@ -123,11 +109,12 @@ class Network:
 
     def step(self, action, step, ep, optimizer="dqn"):
         new_prob = np.array([round(0.1 * (action[i] + 1), 1) for i in range(action.shape[0])])
+
         self.update_nodes_prob(new_prob)
 
         # t = 0
         # while t < self.step_length:
         #     self.run_per_second(t, communicate_func)
         #     t+= 1
-        self.simulate(start_t=step * self.step_length + 1, com_func=communicate_func,
-                      maxtime=self.step_length, logfile="./log/logfile_" + str(ep) + ".txt", optimizer=optimizer)
+        return self.simulate(start_t=step * self.step_length + 1, com_func=communicate_func,
+                             maxtime=self.step_length, logfile="./log/logfile_" + str(ep) + ".txt", optimizer=optimizer)

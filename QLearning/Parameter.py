@@ -1,8 +1,11 @@
 alpha = 36.0
 beta = 30.0
 base = (500.0, 500.0)
-theta = 0.8
-gamma = 0.2
+
+theta = 0.6
+gamma = 0.3
+sigma = 0.1
+
 depot = (0.0, 0.0)
 b = 400.0
 b_energy = 0.0
@@ -10,13 +13,13 @@ ER = 0.0000001
 ET = 0.00000005
 EFS = 0.00000000001
 EMP = 0.0000000000000013
-input_dim = 2
+input_dim = 16
 prob = 0.5
 n_size = 100
 x_bound = [0, 1000]
 y_bound = [0, 1000]
 num_car = 10
-cover_radius = 100
+cover_radius = 0.1
 cover_time = 30  # second
 eng_per_package = 0.02
 record_time_step = 600

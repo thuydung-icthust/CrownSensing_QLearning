@@ -47,21 +47,23 @@ class DQN:
         models = []
         for i in range(0, self.num_agent):
             model = Sequential()
-            model.add(Dense(100, input_dim=self.input_dim))
+            model.add(Dense(32, input_dim=self.input_dim))
             model.add(Activation('relu'))
-            model.add(Dense(50))
+            model.add(Dense(64))
+            model.add(Activation('relu'))
+            model.add(Dense(32))
             model.add(Activation('relu'))
             model.add(Dense(self.action_space))
-            model.add(Activation('linear'))
-            sgd = optimizers.SGD(lr=self.learning_rate, decay=1e-6, momentum=0.95)
-            model.compile(optimizer=sgd, loss='mse')
+            model.add(Activation('softmax'))
+
+            model.compile(optimizer='adam', loss='kld')  # Kullback-Leibler divergence loss
             models.append(model)
         return models
 
     def act(self, state):
         actions = []
         for idx in range(len(self.models)):
-            a_max = np.argmax(self.models[idx].predict(state[idx].reshape(1, self.input_dim)))
+            a_max = np.argmax(self.models[idx].predict(state.reshape(1, self.input_dim)))
             a_chosen = 0
             if (random() < self.epsilon):
                 a_chosen = randrange(self.action_space)
@@ -79,13 +81,12 @@ class DQN:
             for i in range(0, batch_size):
                 state = samples[0][i]
                 action = samples[1][i, idx]
-                reward = samples[2][i]
+                reward = samples[2][i, idx]
                 new_state = samples[3][i]
                 done = samples[4][i]
 
                 inputs[i, :] = state
                 # print(str(i) + ' ' + str(idx))
-                # print(state)
                 # print(action)
                 # print(reward)
                 # print(new_state)

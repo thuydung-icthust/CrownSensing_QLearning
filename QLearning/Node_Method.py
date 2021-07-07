@@ -33,8 +33,8 @@ def update_postion(node, t):
         node.update_loc(long=current_x, lat=current_y)
         node.moving_step = update_moving_step(node)
     else:
-        current_x = node.longitude + node.moving_step[0] * para.update_step
-        current_y = node.latitude + node.moving_step[1] * para.update_step
+        current_x = node.longitude + node.moving_step[0]
+        current_y = node.latitude + node.moving_step[1]
         node.update_loc(long=current_x, lat=current_y)
 
 

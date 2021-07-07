@@ -1,3 +1,4 @@
+import math
 import random
 from Package import Package
 import Parameter as para
@@ -41,12 +42,14 @@ def count_package_function(net):
 
 def communicate_func(net):
     # func that the nodes send package to the gnb server
+    is_sent = np.zeros(net.num_node)
     for node in net.list_node:
         if random.random() <= node.prob and node.is_active:
             package = Package()
             node.send(net=net, package=package)
             net.gnb.receive(from_id=node.id, package=package)
-    return True
+            is_sent[node.id] = 1
+    return is_sent
 
 
 def get_new_prob(net):
@@ -106,7 +109,63 @@ def get_reward(net, delta_t, t=0, logfile="log/dqn_logfile.txt"):
     return (para.theta * factor1 - para.gamma * factor2) - 0.025 * factor3
 
 
-def reset_tracking(net):
+def calculate_cover_area(net, idx, is_sent):
+    factor1 = 0
+    inode = net.list_node[idx]
+
+    def circle_area(r=para.cover_radius):
+        return np.pi * r * r
+
+    def overlap_area(x1, y1, x2, y2, R=para.cover_radius, r=para.cover_radius):
+        d = math.sqrt((x1 - x2)**2 + (y1 - y2)**2)
+        if d == 0:
+            # One circle is entirely enclosed in the other.
+            return np.pi * min(R, r)**2
+        if d >= r + R:
+            # The circles don't overlap at all.
+            return 0
+
+        r2, R2, d2 = r**2, R**2, d**2
+        alpha = np.arccos((d2 + r2 - R2) / (2 * d * r))
+        beta = np.arccos((d2 + R2 - r2) / (2 * d * R))
+        return (r2 * alpha + R2 * beta -
+                0.5 * (r2 * np.sin(2 * alpha) + R2 * np.sin(2 * beta))
+                )
+
+    if (is_sent[idx] == 1):
+        factor1 = 1
+
+    for node in net.list_node:
+        # if it is the investigating node or the
+        if (idx == node.id or is_sent[node.id] == 0):
+            continue
+        else:
+            if (is_sent[idx] == 1):
+                factor1 -= overlap_area(inode.latitude, inode.longitude, node.latitude,
+                                        node.longitude) / circle_area()
+            else:
+                factor1 += overlap_area(inode.latitude, inode.longitude, node.latitude,
+                                        node.longitude) / circle_area()
+
+    return factor1
+
+
+def get_reward_v2(net, delta_t, is_sent, t=0, logfile="log/dqn_logfile.txt"):
+    rewards = np.zeros(net.num_node)
+
+    for idx in range(net.num_node):
+        factor1 = calculate_cover_area(net, idx, is_sent)  # cover area, take into account the overlapping area
+        factor2 = abs((net.gnb.msg_from_node[idx] / net.gnb.total_receiving) -
+                      (net.gnb.total_receiving / net.num_node))  # sent ratio / uniform ratio
+        factor3 = is_sent[idx]
+        rewards[idx] = para.theta * factor1 - para.gamma * factor2 - para.sigma * factor3
+
+    return rewards
+
+
+def reset_tracking(net, step):
     net.not_tracking = np.zeros((para.n_size * para.n_size, 1))
-    net.gnb.msg_from_node = [0 for i in range(0, net.gnb.total_node)]
-    net.gnb.total_receiving = 0
+    # only reset the # of msg after each 30min
+    if step % 60 == 0:
+        net.gnb.msg_from_node = [0 for i in range(0, net.gnb.total_node)]
+        net.gnb.total_receiving = 0

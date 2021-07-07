@@ -45,7 +45,7 @@ for episode_i in range(0, dqn_conf.N_EPISODE):
         # net.update_node_position(0)
         net.reset()
         s = net.get_state()
-        print(s[0].shape)
+
         total_reward = 0  # The amount of rewards for the entire episode
         terminate = False
         maxStep = dqn_conf.MAX_STEP
@@ -56,17 +56,19 @@ for episode_i in range(0, dqn_conf.N_EPISODE):
             # get_current_state(net)
             # Getting an action from the DQN model from the state (s)
             action = dqnAgent.act(s)
-            print(action)
+            print(f'action: {action}')
+
             # Performing the action in order to obtain the new state
-            net.step(action, step, episode_i, "dqn")
+            reward = net.step(action, step, episode_i, "dqn")
+            print(f'reward: {reward}')
+
             s_next = net.get_state()  # Getting a new state
-            print(f'State: {s_next}')
-            reward = net.get_reward(
-                t=step * net.step_length)  # Getting a reward
             terminate = net.check_terminate(
                 step)  # checking the end status
-            reset_tracking(net)
+
+            reset_tracking(net, step)
             # Add this transition to the memory batch
+            # print(f'state2: {s}')
             memory.push(s, action, reward, terminate, s_next)
             if (memory.length > dqn_conf.INITIAL_REPLAY_SIZE):
                 # Get a BATCH_SIZE experiences for replaying
@@ -77,7 +79,7 @@ for episode_i in range(0, dqn_conf.N_EPISODE):
             total_reward = total_reward + reward
             s = s_next  # Assign the next state for the next step.
             save_data = np.hstack(
-                [episode_i + 1, step + 1, reward, total_reward, action[0],
+                [episode_i + 1, step + 1, np.average(reward), np.average(total_reward), action[0],
                  action[1], dqnAgent.epsilon, terminate]).reshape(1, 8)
             with open(filename, 'a') as f:
                 pd.DataFrame(save_data).to_csv(
