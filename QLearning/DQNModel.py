@@ -89,22 +89,24 @@ class DQN:
                 done = samples[4][i]
 
                 inputs[i, :] = state
+                # print(state.shape)
                 # print(str(i) + ' ' + str(idx))
                 # print(action)
                 # print(reward)
                 # print(new_state)
                 # print(done)
                 targets[i, :] = self.target_models[idx].predict(
-                    state)
+                    state.reshape(1, -1))
                 if done:
                     # if terminated, only equals reward
                     targets[i, action] = reward
                 else:
                     Q_future = np.max(self.target_models[idx].predict(
-                        new_state))
+                        new_state.reshape(1, -1)))
                     targets[i, action] = reward + Q_future * self.gamma
             # Training
             loss = self.models[idx].train_on_batch(inputs, targets)
+            print(f'loss: {loss}')
 
     def target_train(self):
         for i in range(len(self.models)):
