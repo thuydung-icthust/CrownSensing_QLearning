@@ -62,8 +62,11 @@ class DQN:
 
     def act(self, state):
         actions = []
+
         for idx in range(len(self.models)):
-            a_max = np.argmax(self.models[idx].predict(state.reshape(1, self.input_dim)))
+            # print(state.shape)
+            pred = self.models[idx].predict(state)
+            a_max = np.argmax(pred)
             a_chosen = 0
             if (random() < self.epsilon):
                 a_chosen = randrange(self.action_space)
@@ -92,13 +95,13 @@ class DQN:
                 # print(new_state)
                 # print(done)
                 targets[i, :] = self.target_models[idx].predict(
-                    state.reshape(1, -1))
+                    state)
                 if done:
                     # if terminated, only equals reward
                     targets[i, action] = reward
                 else:
                     Q_future = np.max(self.target_models[idx].predict(
-                        new_state.reshape(1, -1)))
+                        new_state))
                     targets[i, action] = reward + Q_future * self.gamma
             # Training
             loss = self.models[idx].train_on_batch(inputs, targets)
