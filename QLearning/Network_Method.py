@@ -156,7 +156,7 @@ def get_reward_v2(net, delta_t, is_sent, t=0, logfile="log/dqn_logfile.txt"):
     for idx in range(net.num_node):
         factor1 = calculate_cover_area(net, idx, is_sent)  # cover area, take into account the overlapping area
         factor2 = abs((net.gnb.msg_from_node[idx] / net.gnb.total_receiving) -
-                      (net.gnb.total_receiving / net.num_node))  # sent ratio / uniform ratio
+                      (1 / net.num_node))  # sent ratio / uniform ratio
         factor3 = is_sent[idx]
         rewards[idx] = para.theta * factor1 - para.gamma * factor2 - para.sigma * factor3
 

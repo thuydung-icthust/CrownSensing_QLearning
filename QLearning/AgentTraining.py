@@ -102,7 +102,7 @@ for episode_i in range(0, dqn_conf.N_EPISODE):
 
         # Print the training information after the episode
         print('Episode %d ends. Number of steps is: %d. Accumulated Reward = %.2f. Epsilon = %.2f .Termination code: %d' % (
-            episode_i + 1, step + 1, total_reward, dqnAgent.epsilon, terminate))
+            episode_i + 1, step + 1, np.average(total_reward), dqnAgent.epsilon, terminate))
 
         # Decreasing the epsilon if the replay starts
         if train == True:
