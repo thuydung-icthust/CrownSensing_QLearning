@@ -62,7 +62,8 @@ def read_csv_data(filename):
 
     long_norm = long / abs(long).max()
     lat_norm = lat / abs(lat).max()
-
+    print(long_norm)
+    print(lat_norm)
     return_value = np.vstack((time_recored.values, lat_norm, long_norm))
     max_x = np.amax(return_value, axis=1)[1] + para.cover_radius
     max_y = np.amax(return_value, axis=1)[2] + para.cover_radius

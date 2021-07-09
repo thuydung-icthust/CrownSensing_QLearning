@@ -54,6 +54,7 @@ class ActorCritic():
 
     def forward(self, state):
         output = self.model(state)
+        # print(output)
         return output[:(self.num_node)], output[-1]
 
     def act(self, action_props):
@@ -61,6 +62,7 @@ class ActorCritic():
         for i in range(self.num_node):
             act_probs = action_props[i]
             a_chosen = 0
+            # print(f'action prop: {act_probs}')
             if (np.random.ranf() < self.epsilon):
                 a_chosen = np.random.randint(0, self.output_dim)
             else:
@@ -98,8 +100,10 @@ class ActorCritic():
 if __name__ == '__main__':
     model = ActorCritic(8, 16, 9)
 
-    acts, critic = model.forward(tf.convert_to_tensor(np.random.rand(1, 16)))
-    print(critic)
+    for i in range(1000):
+        acts, critic = model.forward(tf.convert_to_tensor(np.random.rand(1, 16)))
+        print(acts)
+
     # acts_2 = model.act(acts)
     # print(acts_2)
     # print(acts[0][0, acts_2[0]])

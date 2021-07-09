@@ -58,9 +58,9 @@ class Network:
             # nb_package = self.gnb.total_receiving
             if t % self.step_length == 0:
                 reward = get_reward_v2(self, self.step_length, is_sent, t)
-                with open(logfile, "a+") as f:
-                    f.write(f't={t}, reward={reward}\n')
-                    f.close()
+                # with open(logfile, "a+") as f:
+                #     f.write(f't={t}, reward={reward}\n')
+                #     f.close()
                 # get_current_state(self)
                 # print(get_current_map_state(self))
                 # print(get_reward(self, self.step_length))

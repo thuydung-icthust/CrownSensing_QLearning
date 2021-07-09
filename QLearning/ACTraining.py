@@ -49,6 +49,7 @@ for episode_i in range(0, dqn_conf.N_EPISODE):
     with tf.GradientTape() as tape:
         for step in range(1, dqn_conf.MAX_STEP):
             state = tf.convert_to_tensor(state, dtype=tf.float32)
+            print(f'state: {state}')
             actions_probs, critic_value = acAgent.forward(state)
             critic_value_history.append([critic_value[0, i] for i in range(param.num_car)])
 
@@ -57,7 +58,7 @@ for episode_i in range(0, dqn_conf.N_EPISODE):
 
             actions_log = []
             for i in range(param.num_car):
-                actions_log.append(tf.math.log(actions_probs[i][0, actions[i]]))
+                actions_log.append(tf.math.log(tf.clip_by_value(actions_probs[i][0, actions[i]], 1e-10, 1.0)))
             action_probs_history.append(actions_log)
 
             reward = net.step(actions, step, episode_i)
@@ -68,7 +69,7 @@ for episode_i in range(0, dqn_conf.N_EPISODE):
 
             actor_rewards_history.append(reward)
             ep_reward += avg_reward
-
+            state = next_state
             reset_tracking(net, step)
 
             if terminate:
