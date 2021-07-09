@@ -1,3 +1,6 @@
+import numpy as np
+
+
 alpha = 36.0
 beta = 30.0
 base = (500.0, 500.0)
@@ -5,6 +8,9 @@ base = (500.0, 500.0)
 theta = 0.6
 gamma = 0.3
 sigma = 0.1
+
+gamma2 = 0.99  # discount factor for past reward
+eps = np.finfo(np.float32).eps.item()  # normalize factor
 
 depot = (0.0, 0.0)
 b = 400.0
@@ -18,7 +24,7 @@ prob = 0.5
 n_size = 100
 x_bound = [0, 1000]
 y_bound = [0, 1000]
-num_car = 10
+num_car = 8
 cover_radius = 0.1
 cover_time = 30  # second
 eng_per_package = 0.02

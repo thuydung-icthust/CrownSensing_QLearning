@@ -6,7 +6,9 @@ MEMORY_SIZE = 10000  # The size of the batch for storing experiences
 SAVE_NETWORK = 50
 # The number of experiences are stored in the memory batch before starting replaying
 INITIAL_REPLAY_SIZE = 50
-INPUTNUM = 10000  # The number of input values for the DQN model
-ACTIONNUM = 10  # The number of actions output from the DQN model
+
+NUM_NODE = 8
+INPUTNUM = 16  # The number of input values for the DQN model
+ACTIONNUM = 9  # The number of actions output from the DQN model
 MAP_MAX_X = 21  # Width of the Map
 MAP_MAX_Y = 9  # Height of the Map

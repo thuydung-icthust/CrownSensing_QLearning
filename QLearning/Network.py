@@ -50,19 +50,16 @@ class Network:
 
     def simulate(self, start_t=0, optimizer="dqn", com_func=None, maxtime=36000, logfile="./log/logfile.txt"):
         t = start_t
-        avg_reward = np.zeros(self.num_node)
 
         while(t < maxtime + start_t):
             self.update_node_position(t)
             is_sent = self.run_per_second(com_func=com_func, log_file=logfile)
 
             # nb_package = self.gnb.total_receiving
-            avg_reward += get_reward_v2(self, self.step_length, is_sent, t)
-
             if t % self.step_length == 0:
-                avg_reward /= self.step_length
+                reward = get_reward_v2(self, self.step_length, is_sent, t)
                 with open(logfile, "a+") as f:
-                    f.write(f't={t}, avg_reward={avg_reward}\n')
+                    f.write(f't={t}, reward={reward}\n')
                     f.close()
                 # get_current_state(self)
                 # print(get_current_map_state(self))
@@ -73,7 +70,7 @@ class Network:
 
             t += 1
 
-        return avg_reward
+        return reward
 
     def reset(self):
         self.not_tracking = np.zeros((para.n_size * para.n_size, 1))
@@ -82,7 +79,7 @@ class Network:
     def get_state(self):
         state = np.zeros((self.num_node, 2))
         for i, node in enumerate(self.list_node):
-            state[i] = node.longitude, node.latitude
+            state[i] = node.latitude, node.longitude
         return state.reshape(1, -1)
 
     def get_reward(self, t):
@@ -108,7 +105,8 @@ class Network:
             node.update_prob(new_prob[i])
 
     def step(self, action, step, ep, optimizer="dqn"):
-        new_prob = np.array([round(0.1 * (action[i] + 1), 1) for i in range(action.shape[0])])
+        new_prob = [round(0.1 * (action[i] + 1), 1) for i in range(len(action))]
+        print(f'updated prob: {new_prob}')
 
         self.update_nodes_prob(new_prob)
 

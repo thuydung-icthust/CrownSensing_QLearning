@@ -4,7 +4,6 @@ from DQNModel import DQN
 from Node import Node
 from Network import Network
 import pandas as pd
-from ast import literal_eval
 from GnbServer import GnbServer
 from getdata import read_data
 from Network_Method import get_current_map_state, get_reward, uniform_com_func, communicate_func, print_node_position, get_current_state, get_current_map_state, get_reward, reset_tracking

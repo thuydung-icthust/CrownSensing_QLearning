@@ -1,9 +1,12 @@
 import math
 import random
+
+import tensorflow as tf
 from Package import Package
 import Parameter as para
 import numpy as np
 from helper import *
+from tensorflow.keras.metrics import kl_divergence
 
 
 def uniform_com_func(net):
@@ -150,6 +153,43 @@ def calculate_cover_area(net, idx, is_sent):
     return factor1
 
 
+def calculate_cover_area_v2(net, is_sent):
+    factor1 = 0
+
+    def circle_area(r=para.cover_radius):
+        return np.pi * r * r
+
+    def overlap_area(x1, y1, x2, y2, R=para.cover_radius, r=para.cover_radius):
+        d = math.sqrt((x1 - x2)**2 + (y1 - y2)**2)
+        if d == 0:
+            # One circle is entirely enclosed in the other.
+            return np.pi * min(R, r)**2
+        if d >= r + R:
+            # The circles don't overlap at all.
+            return 0
+
+        r2, R2, d2 = r**2, R**2, d**2
+        alpha = np.arccos((d2 + r2 - R2) / (2 * d * r))
+        beta = np.arccos((d2 + R2 - r2) / (2 * d * R))
+        return (r2 * alpha + R2 * beta -
+                0.5 * (r2 * np.sin(2 * alpha) + R2 * np.sin(2 * beta))
+                )
+
+    total_area = net.num_node * circle_area()
+    cover_area = np.sum(is_sent) * circle_area()
+    ovlap_area = 0
+
+    sent_node = np.argwhere(is_sent)
+    for i in range(sent_node.shape[0]):
+        for j in range(i + 1, sent_node.shape[0]):
+            node_i = net.list_node[sent_node[i][0]]
+            node_j = net.list_node[sent_node[j][0]]
+            ovlap_area += overlap_area(node_i.latitude, node_i.longitude, node_j.latitude,
+                                       node_j.longitude)
+
+    return (cover_area - ovlap_area) / total_area
+
+
 def get_reward_v2(net, delta_t, is_sent, t=0, logfile="log/dqn_logfile.txt"):
     rewards = np.zeros(net.num_node)
 
@@ -157,15 +197,39 @@ def get_reward_v2(net, delta_t, is_sent, t=0, logfile="log/dqn_logfile.txt"):
         factor1 = calculate_cover_area(net, idx, is_sent)  # cover area, take into account the overlapping area
         factor2 = abs((net.gnb.msg_from_node[idx] / net.gnb.total_receiving) -
                       (1 / net.num_node))  # sent ratio / uniform ratio
-        factor3 = is_sent[idx]
+        factor3 = net.gnb.msg_from_node[idx] / delta_t
         rewards[idx] = para.theta * factor1 - para.gamma * factor2 - para.sigma * factor3
+
+    return rewards.tolist()
+
+
+def get_reward_v3(net, delta_t, is_sent, t=0, logfile="log/dqn_logfile.txt"):
+    rewards = 0
+
+    factor1 = calculate_cover_area_v2(net, is_sent)  # cover area, take into account the overlapping area
+
+    uniform_sent_ratio = tf.convert_to_tensor([1 / net.num_node for i in range(net.num_node)])
+    real_sent_ratio = tf.convert_to_tensor([i / net.gnb.total_receiving for i in net.gnb.msg_from_node])
+    factor2 = kl_divergence(uniform_sent_ratio, real_sent_ratio).numpy()
+
+    factor3 = net.gnb.total_receiving / (delta_t * net.num_node)
+
+    rewards = para.theta * factor1 - para.gamma * factor2 - para.sigma * factor3
 
     return rewards
 
 
 def reset_tracking(net, step):
     net.not_tracking = np.zeros((para.n_size * para.n_size, 1))
-    # only reset the # of msg after each 30min
-    if step % 60 == 0:
-        net.gnb.msg_from_node = [0 for i in range(0, net.gnb.total_node)]
-        net.gnb.total_receiving = 0
+    net.gnb.msg_from_node = [0 for i in range(0, net.gnb.total_node)]
+    net.gnb.total_receiving = 0
+
+
+def test_kld():
+    a = tf.convert_to_tensor(np.random.rand(10))
+    b = tf.convert_to_tensor(np.random.rand(10))
+    print(kl_divergence(a, b).numpy())
+
+
+if __name__ == '__main__':
+    test_kld()
