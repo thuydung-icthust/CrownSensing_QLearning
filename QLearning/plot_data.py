@@ -1,0 +1,31 @@
+import matplotlib.pyplot as plt
+import pandas as pd
+
+
+def plot_reward(path):
+    data = pd.read_csv(path, header=0, index_col=None)
+    running_rws = data['Reward']
+    eps = range(1, 1001, 1)
+    plt.plot(eps, running_rws.to_numpy())
+    plt.xlabel('episode')
+    plt.ylabel('reward')
+    plt.show()
+
+
+def plot_cover_area(path):
+    data = pd.read_csv(path, header=0, index_col=None)
+    cover_area = data['Cover_area']
+    sent_pkg = data['Sent_pkg']
+    eps = range(1, 1001, 1)
+    fig, (ax1, ax2) = plt.subplots(2, 1)
+    fig.suptitle('Testing episode')
+    ax1.plot(eps, cover_area.to_numpy())
+    ax2.plot(eps, sent_pkg.to_numpy())
+    ax1.set(xlabel='step', ylabel='cover area ratio')
+    ax2.set(xlabel='step', ylabel='sent ratio')
+    plt.show()
+
+
+if __name__ == '__main__':
+    # plot_reward('log/data_20210709-2259.csv')
+    plot_cover_area('Data/data_test_20210711-1737.csv')

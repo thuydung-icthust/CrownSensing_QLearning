@@ -177,17 +177,25 @@ def calculate_cover_area_v2(net, is_sent):
 
     total_area = net.num_node * circle_area()
     cover_area = np.sum(is_sent) * circle_area()
-    ovlap_area = 0
+    ovlap_area_cv = 0
+    ovlap_area_tt = 0
 
     sent_node = np.argwhere(is_sent)
     for i in range(sent_node.shape[0]):
         for j in range(i + 1, sent_node.shape[0]):
             node_i = net.list_node[sent_node[i][0]]
             node_j = net.list_node[sent_node[j][0]]
-            ovlap_area += overlap_area(node_i.latitude, node_i.longitude, node_j.latitude,
-                                       node_j.longitude)
+            ovlap_area_cv += overlap_area(node_i.latitude, node_i.longitude, node_j.latitude,
+                                          node_j.longitude)
 
-    return (cover_area - ovlap_area) / total_area
+    for i in range(net.num_node):
+        for j in range(i + 1, net.num_node):
+            node_i = net.list_node[i]
+            node_j = net.list_node[j]
+            ovlap_area_tt += overlap_area(node_i.latitude, node_i.longitude, node_j.latitude,
+                                          node_j.longitude)
+
+    return (cover_area - ovlap_area_cv) / (total_area - ovlap_area_tt)
 
 
 def get_reward_v2(net, delta_t, is_sent, t=0, logfile="log/dqn_logfile.txt"):

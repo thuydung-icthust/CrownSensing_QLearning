@@ -24,7 +24,8 @@ inputfile = "input/carname.txt"
 
 # Create header for saving DQN learning file
 now = datetime.datetime.now()  # Getting the latest datetime
-header = ["Ep", "Reward", "Running_reward"]  # Defining header for the save file
+# Defining header for the save file
+header = ["Step", "Reward", "Running_reward", "Cover_area", "Sharing_factor", "Sent_pkg"]
 filename = "Data/data_" + now.strftime("%Y%m%d-%H%M") + ".csv"
 with open(filename, 'w') as f:
     pd.DataFrame(columns=header).to_csv(
@@ -42,10 +43,12 @@ actor_rewards_history = []
 running_reward = 0
 terminate = False
 
-
 for episode_i in range(0, dqn_conf.N_EPISODE):
     state = net.get_state()
     ep_reward = 0
+    ep_area = 0
+    ep_sharing = 0
+    ep_pkgs = 0
     with tf.GradientTape() as tape:
         for step in range(1, dqn_conf.MAX_STEP):
             state = tf.convert_to_tensor(state, dtype=tf.float32)
@@ -61,14 +64,19 @@ for episode_i in range(0, dqn_conf.N_EPISODE):
                 actions_log.append(tf.math.log(tf.clip_by_value(actions_probs[i][0, actions[i]], 1e-10, 1.0)))
             action_probs_history.append(actions_log)
 
-            reward = net.step(actions, step, episode_i)
+            reward, cover_area, sharing_factor, sent_factor = net.step(actions, step, episode_i, test=True)
             print(f'reward: {reward}')
             avg_reward = np.average(reward)
             next_state = net.get_state()
             terminate = net.check_terminate(step)
 
             actor_rewards_history.append(reward)
+
             ep_reward += avg_reward
+            ep_area += cover_area
+            ep_sharing += sharing_factor
+            ep_pkgs += sent_factor
+
             state = next_state
             reset_tracking(net, step)
 
@@ -110,7 +118,7 @@ for episode_i in range(0, dqn_conf.N_EPISODE):
         actor_rewards_history.clear()
 
     save_data = np.hstack(
-        [episode_i + 1, ep_reward, running_reward]).reshape(1, 3)
+        [episode_i + 1, ep_reward, running_reward, ep_area, ep_sharing, ep_pkgs]).reshape(1, 6)
 
     with open(filename, 'a') as f:
         pd.DataFrame(save_data).to_csv(

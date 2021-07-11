@@ -96,6 +96,9 @@ class ActorCritic():
         save_path = 'checkpoint/ac_ep_{}.h5'
         self.model.save_weights(save_path.format(ep))
 
+    def load_model(self, path):
+        self.model.load_weights(path)
+
 
 if __name__ == '__main__':
     model = ActorCritic(8, 16, 9)

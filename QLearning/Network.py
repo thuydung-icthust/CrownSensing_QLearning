@@ -48,7 +48,7 @@ class Network:
     def run_per_second(self, optimizer=None, com_func=communicate_func, log_file="./log/logfile.txt"):
         return self.communicate(com_func)
 
-    def simulate(self, start_t=0, optimizer="dqn", com_func=None, maxtime=36000, logfile="./log/logfile.txt"):
+    def simulate(self, start_t=0, optimizer="dqn", com_func=None, maxtime=36000, test=False, logfile="./log/logfile.txt"):
         t = start_t
 
         while(t < maxtime + start_t):
@@ -58,18 +58,20 @@ class Network:
             # nb_package = self.gnb.total_receiving
             if t % self.step_length == 0:
                 reward = get_reward_v2(self, self.step_length, is_sent, t)
-                # with open(logfile, "a+") as f:
-                #     f.write(f't={t}, reward={reward}\n')
-                #     f.close()
-                # get_current_state(self)
-                # print(get_current_map_state(self))
-                # print(get_reward(self, self.step_length))
-                # reset_tracking(self)
-            # if t % 100 == 0:
-                # print_node_position(self)
+
+                if test:
+                    cover_area = calculate_cover_area_v2(self, is_sent)
+
+                    uniform_sent_ratio = tf.convert_to_tensor([1 / self.num_node for i in range(self.num_node)])
+                    real_sent_ratio = tf.convert_to_tensor(
+                        [i / self.gnb.total_receiving for i in self.gnb.msg_from_node])
+                    sharing_factor = kl_divergence(uniform_sent_ratio, real_sent_ratio).numpy()
+                    sent_factor = self.gnb.total_receiving / (self.step_length * self.num_node)
 
             t += 1
 
+        if test:
+            return reward, cover_area, sharing_factor, sent_factor
         return reward
 
     def reset(self):
@@ -104,7 +106,7 @@ class Network:
         for i, node in enumerate(self.list_node):
             node.update_prob(new_prob[i])
 
-    def step(self, action, step, ep, optimizer="dqn"):
+    def step(self, action, step, ep, optimizer="dqn", test=False):
         new_prob = [round(0.1 * (action[i] + 1), 1) for i in range(len(action))]
         print(f'updated prob: {new_prob}')
 
@@ -115,4 +117,4 @@ class Network:
         #     self.run_per_second(t, communicate_func)
         #     t+= 1
         return self.simulate(start_t=step * self.step_length + 1, com_func=communicate_func,
-                             maxtime=self.step_length, logfile="./log/logfile_" + str(ep) + ".txt", optimizer=optimizer)
+                             maxtime=self.step_length, logfile="./log/logfile_" + str(ep) + ".txt", optimizer=optimizer, test=test)
