@@ -6,8 +6,8 @@ beta = 30.0
 base = (500.0, 500.0)
 
 theta = 0.6
-gamma = 0.3
-sigma = 0.1
+gamma = 0.2
+sigma = 0.2
 
 gamma2 = 0.99  # discount factor for past reward
 eps = np.finfo(np.float32).eps.item()  # normalize factor
