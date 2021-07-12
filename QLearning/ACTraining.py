@@ -56,7 +56,7 @@ for episode_i in range(0, dqn_conf.N_EPISODE):
             actions_probs, critic_value = acAgent.forward(state)
             critic_value_history.append([critic_value[0, i] for i in range(param.num_car)])
 
-            actions = acAgent.act(actions_probs)
+            actions = acAgent.act(actions_probs, episode_i)
             print(f'action: {actions}')
 
             actions_log = []

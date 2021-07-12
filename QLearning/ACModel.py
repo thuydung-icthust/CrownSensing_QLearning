@@ -57,14 +57,17 @@ class ActorCritic():
         # print(output)
         return output[:(self.num_node)], output[-1]
 
-    def act(self, action_props):
+    def act(self, action_props, eps):
         actions = []
         for i in range(self.num_node):
             act_probs = action_props[i]
             a_chosen = 0
             # print(f'action prop: {act_probs}')
             if (np.random.ranf() < self.epsilon):
-                a_chosen = np.random.randint(0, self.output_dim)
+                if (eps < 50):
+                    a_chosen = np.random.randint(self.output_dim - 2, self.output_dim)
+                else:
+                    a_chosen = np.random.randint(0, self.output_dim)
             else:
                 a_chosen = np.random.choice(self.output_dim, p=np.squeeze(act_probs))
             actions.append(a_chosen)
