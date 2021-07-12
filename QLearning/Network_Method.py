@@ -206,7 +206,11 @@ def get_reward_v2(net, delta_t, is_sent, t=0, logfile="log/dqn_logfile.txt"):
         factor2 = abs((net.gnb.msg_from_node[idx] / net.gnb.total_receiving) -
                       (1 / net.num_node))  # sent ratio / uniform ratio
         factor3 = net.gnb.msg_from_node[idx] / delta_t
-        rewards[idx] = para.theta * factor1 - para.gamma * factor2 - para.sigma * factor3
+
+        if (factor1 > 0.85):  # if the cover factor is small, add additional weight to this factor to push it up
+            rewards[idx] = para.thetab * factor1 - para.gammab * factor2 - para.sigmab * factor3
+        else:
+            rewards[idx] = para.theta * factor1 - para.gamma * factor2 - para.sigma * factor3
 
     return rewards.tolist()
 
