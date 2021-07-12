@@ -1,3 +1,4 @@
+from getdata import read_data
 import matplotlib.pyplot as plt
 import pandas as pd
 
@@ -29,6 +30,16 @@ def plot_cover_area(path):
     plt.show()
 
 
+def plot_map():
+    inputfile = "input/carname.txt"
+    total_node, nodes, min_x, max_x, min_y, max_y = read_data(inputfile)
+    for node_i in nodes:
+        plt.plot(node_i.location_list[1, :], node_i.location_list[2, :])
+
+    plt.show()
+
+
 if __name__ == '__main__':
     # plot_reward('log/data_20210709-2259.csv')
-    plot_cover_area('Data/data_20210712-0949.csv')
+    # plot_cover_area('Data/data_20210712-0949.csv')
+    plot_map()
