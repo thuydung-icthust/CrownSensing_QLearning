@@ -5,13 +5,13 @@ alpha = 36.0
 beta = 30.0
 base = (500.0, 500.0)
 
-theta = 0.6
-gamma = 0.1
+theta = 0.5
+gamma = 0.2
 sigma = 0.3
 
 thetab = 0.9
-gammab = 0.1
-sigmab = 0.1
+gammab = 0.05
+sigmab = 0.05
 
 gamma2 = 0.99  # discount factor for past reward
 eps = np.finfo(np.float32).eps.item()  # normalize factor
@@ -29,7 +29,7 @@ n_size = 100
 x_bound = [0, 1000]
 y_bound = [0, 1000]
 num_car = 15
-cover_radius = 0.3
+cover_radius = 0.6
 cover_time = 30  # second
 eng_per_package = 0.02
 record_time_step = 600

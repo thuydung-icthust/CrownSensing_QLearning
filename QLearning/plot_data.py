@@ -41,5 +41,5 @@ def plot_map():
 
 if __name__ == '__main__':
     # plot_reward('log/data_20210709-2259.csv')
-    # plot_cover_area('Data/data_20210712-0949.csv')
-    plot_map()
+    plot_cover_area('Data/data_20210712-1546.csv')
+    # plot_map()

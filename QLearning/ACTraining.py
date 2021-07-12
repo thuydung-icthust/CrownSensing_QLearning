@@ -18,7 +18,7 @@ np.random.seed(seed)
 tf.random.set_seed(seed)
 
 
-acAgent = ActorCritic(param.num_car, dqn_conf.INPUTNUM, dqn_conf.ACTIONNUM)
+acAgent = ActorCritic(param.num_car, dqn_conf.INPUTNUM, dqn_conf.ACTIONNUM, epsilon=0)
 
 inputfile = "input/carname.txt"
 

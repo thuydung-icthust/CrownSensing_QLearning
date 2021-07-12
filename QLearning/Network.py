@@ -79,9 +79,10 @@ class Network:
         self.update_node_position(0)
 
     def get_state(self):
-        state = np.zeros((self.num_node, 4))
+        state = np.zeros((self.num_node, 2))
         for i, node in enumerate(self.list_node):
-            state[i] = node.latitude, node.longitude, node.moving_step[0], node.moving_step[1]
+            # state[i] = node.latitude, node.longitude, node.moving_step[0], node.moving_step[1]
+            state[i] = node.latitude, node.longitude
         return state.reshape(1, -1)
 
     def get_reward(self, t):
