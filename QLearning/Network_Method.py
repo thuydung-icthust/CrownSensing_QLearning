@@ -154,8 +154,6 @@ def calculate_cover_area(net, idx, is_sent):
 
 
 def calculate_cover_area_v2(net, is_sent):
-    factor1 = 0
-
     def circle_area(r=para.cover_radius):
         return np.pi * r * r
 
@@ -172,30 +170,59 @@ def calculate_cover_area_v2(net, is_sent):
         alpha = np.arccos((d2 + r2 - R2) / (2 * d * r))
         beta = np.arccos((d2 + R2 - r2) / (2 * d * R))
         return (r2 * alpha + R2 * beta -
-                0.5 * (r2 * np.sin(2 * alpha) + R2 * np.sin(2 * beta))
-                )
+                0.5 * (r2 * np.sin(2 * alpha) + R2 * np.sin(2 * beta)))
 
     total_area = net.num_node * circle_area()
+    print(f'total area: {total_area}')
     cover_area = np.sum(is_sent) * circle_area()
+    print(f'cover area: {cover_area}')
+
     ovlap_area_cv = 0
     ovlap_area_tt = 0
 
     sent_node = np.argwhere(is_sent)
+    print(f'sent node: {sent_node}')
+
     for i in range(sent_node.shape[0]):
         for j in range(i + 1, sent_node.shape[0]):
             node_i = net.list_node[sent_node[i][0]]
             node_j = net.list_node[sent_node[j][0]]
-            ovlap_area_cv += overlap_area(node_i.latitude, node_i.longitude, node_j.latitude,
-                                          node_j.longitude)
+            ovl_area = overlap_area(node_i.latitude, node_i.longitude, node_j.latitude,
+                                    node_j.longitude)
+            ovlap_area_cv += ovl_area
+            print(f'node {sent_node[i][0]} and {sent_node[j][0]} ovlap area: {ovl_area}')
+
+    print(f'cover overlap area: {ovlap_area_cv}')
 
     for i in range(net.num_node):
         for j in range(i + 1, net.num_node):
             node_i = net.list_node[i]
             node_j = net.list_node[j]
-            ovlap_area_tt += overlap_area(node_i.latitude, node_i.longitude, node_j.latitude,
-                                          node_j.longitude)
+            ovl_area = overlap_area(node_i.latitude, node_i.longitude, node_j.latitude,
+                                    node_j.longitude)
+            ovlap_area_tt += ovl_area
+            print(f'node {i} and {j} ovlap area: {ovl_area}')
+
+    print(f'total overlap area: {ovlap_area_tt}')
 
     return (cover_area - ovlap_area_cv) / (total_area - ovlap_area_tt)
+
+
+def calculate_area_v3(net, is_sent):
+    # monte carlos approximation for area
+    m = 0
+
+    idxs = np.argwhere(is_sent)
+    for i in range(para.mc_approximation):
+        x_rand = np.random.uniform(para.min_x, para.max_x)
+        y_rand = np.random.uniform(para.min_y, para.max_y)
+        for id in idxs:
+            dist = (x_rand - net.list_node[id[0]].latitude)**2 + (y_rand - net.list_node[id[0]].longitude)**2
+            if (dist < para.cover_radius**2):
+                m += 1
+                break
+
+    return m / para.mc_approximation
 
 
 def get_reward_v2(net, delta_t, is_sent, t=0, logfile="log/dqn_logfile.txt"):
@@ -203,8 +230,11 @@ def get_reward_v2(net, delta_t, is_sent, t=0, logfile="log/dqn_logfile.txt"):
 
     for idx in range(net.num_node):
         factor1 = calculate_cover_area(net, idx, is_sent)  # cover area, take into account the overlapping area
-        factor2 = abs((net.gnb.msg_from_node[idx] / net.gnb.total_receiving) -
-                      (1 / net.num_node))  # sent ratio / uniform ratio
+        if net.gnb.total_receiving != 0:
+            factor2 = abs((net.gnb.msg_from_node[idx] / net.gnb.total_receiving) -
+                          (1 / net.num_node))  # sent ratio / uniform ratio
+        else:
+            factor2 = 0
         factor3 = net.gnb.msg_from_node[idx] / delta_t
 
         if (factor1 > 0.85):  # if the cover factor is small, add additional weight to this factor to push it up
@@ -231,7 +261,7 @@ def get_reward_v3(net, delta_t, is_sent, t=0, logfile="log/dqn_logfile.txt"):
     return rewards
 
 
-def reset_tracking(net, step):
+def reset_tracking(net):
     net.not_tracking = np.zeros((para.n_size * para.n_size, 1))
     net.gnb.msg_from_node = [0 for i in range(0, net.gnb.total_node)]
     net.gnb.total_receiving = 0
@@ -241,7 +271,3 @@ def test_kld():
     a = tf.convert_to_tensor(np.random.rand(10))
     b = tf.convert_to_tensor(np.random.rand(10))
     print(kl_divergence(a, b).numpy())
-
-
-if __name__ == '__main__':
-    test_kld()

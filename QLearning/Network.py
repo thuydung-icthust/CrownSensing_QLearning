@@ -1,3 +1,5 @@
+from getdata import read_data
+from GnbServer import GnbServer
 import csv
 from scipy.spatial import distance
 from tensorflow.python.ops.gen_random_ops import TruncatedNormal
@@ -55,35 +57,39 @@ class Network:
             self.update_node_position(t)
             is_sent = self.run_per_second(com_func=com_func, log_file=logfile)
 
+            # print(t)
             # nb_package = self.gnb.total_receiving
-            if t % self.step_length == 0:
+            if t % self.step_length == 0 and test:
                 reward = get_reward_v2(self, self.step_length, is_sent, t)
+                cover_area = calculate_area_v3(self, is_sent)
 
-                if test:
-                    cover_area = calculate_cover_area_v2(self, is_sent)
-
-                    uniform_sent_ratio = tf.convert_to_tensor([1 / self.num_node for i in range(self.num_node)])
+                if self.gnb.total_receiving != 0:
+                    uniform_sent_ratio = tf.convert_to_tensor(
+                        [1 / self.num_node for i in range(self.num_node)], dtype=tf.float32)
                     real_sent_ratio = tf.convert_to_tensor(
-                        [i / self.gnb.total_receiving for i in self.gnb.msg_from_node])
+                        [i / self.gnb.total_receiving for i in self.gnb.msg_from_node], dtype=tf.float32)
                     sharing_factor = kl_divergence(uniform_sent_ratio, real_sent_ratio).numpy()
-                    sent_factor = self.gnb.total_receiving / (self.step_length * self.num_node)
+                else:
+                    sharing_factor = 0
+                sent_factor = self.gnb.total_receiving / (self.step_length * self.num_node)
 
             t += 1
 
         if test:
             return reward, cover_area, sharing_factor, sent_factor
-        return reward
+
+        return None
 
     def reset(self):
         self.not_tracking = np.zeros((para.n_size * para.n_size, 1))
         self.update_node_position(0)
 
     def get_state(self):
-        state = np.zeros((self.num_node, 2))
+        state = np.zeros((self.num_node, 4))
         for i, node in enumerate(self.list_node):
-            # state[i] = node.latitude, node.longitude, node.moving_step[0], node.moving_step[1]
-            state[i] = node.latitude, node.longitude
-        return state.reshape(1, -1)
+            state[i] = node.latitude, node.longitude, node.moving_step[0], node.moving_step[1]
+            # state[i] = node.latitude, node.longitude
+        return state
 
     def get_reward(self, t):
         return get_reward(self, self.step_length, t=t)
@@ -108,10 +114,7 @@ class Network:
             node.update_prob(new_prob[i])
 
     def step(self, action, step, ep, optimizer="dqn", test=False):
-        new_prob = [round(0.1 * (action[i] + 1), 1) for i in range(len(action))]
-        print(f'updated prob: {new_prob}')
-
-        self.update_nodes_prob(new_prob)
+        self.update_nodes_prob(action)
 
         # t = 0
         # while t < self.step_length:
@@ -119,3 +122,15 @@ class Network:
         #     t+= 1
         return self.simulate(start_t=step * self.step_length + 1, com_func=communicate_func,
                              maxtime=self.step_length, logfile="./log/logfile_" + str(ep) + ".txt", optimizer=optimizer, test=test)
+
+
+if __name__ == '__main__':
+    inputfile = "input/carname.txt"
+    total_node, nodes, min_x, max_x, min_y, max_y = read_data(inputfile)
+    gnb = GnbServer(total_node=total_node)
+    net = Network(list_node=nodes, num_node=total_node, gnb=gnb,
+                  step_length=para.cover_time, min_x=min_x, max_x=max_x, min_y=min_y, max_y=max_y)
+
+    is_sent = [0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0]
+    # test_kld()
+    print(calculate_area_v3(net, is_sent))

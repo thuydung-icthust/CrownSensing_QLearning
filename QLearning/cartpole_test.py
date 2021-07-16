@@ -85,6 +85,9 @@ while True:  # Run until solved
         history = zip(action_probs_history, critic_value_history, returns)
         actor_losses = []
         critic_losses = []
+        print(action_probs_history)
+        print(critic_value_history)
+        print(returns)
         for log_prob, value, ret in history:
             # At this point in history, the critic estimated that we would get a
             # total reward = `value` in the future. We took an action with log probability

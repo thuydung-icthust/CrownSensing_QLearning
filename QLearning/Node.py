@@ -6,7 +6,7 @@ from Node_Method import to_string, find_receiver, update_postion
 
 class Node:
     def __init__(self, car_name=None, location_list=None, cover_radius=para.cover_radius, cover_time=para.cover_time, current_velocity=None,
-                 energy=100.0, prob=para.prob, avg_energy=0.0, id=None, is_active=True):
+                 energy=100.0, prob=para.initial_prob, avg_energy=0.0, id=None, is_active=True):
         self.location_list = location_list
         self.car_name = car_name
         self.longitude = 0.0
@@ -46,10 +46,6 @@ class Node:
         # d = distance.euclidean(self.location, net.node[receiver_id].location)
         package.update_path(self.id)
         package.is_success = True
-        # e_send = para.ET + para.EFS * d ** 2 if d <= d0 else para.ET + para.EMP * d ** 4
-        e_send = para.eng_per_package
-        self.energy -= e_send * package.size
-        self.used_energy += e_send * package.size
         self.total_sending += 1
         package.update_path(receiver_id)
 

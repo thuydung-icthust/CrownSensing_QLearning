@@ -46,6 +46,7 @@ def read_data(filename="./input/carname.txt"):
             max_x = t_max_x
         if t_max_y > max_y:
             max_y = t_max_y
+    print(max_x, min_x, min_y, max_y)
     return index, nodes, min_x, max_x, min_y, max_y
 
 
