@@ -23,15 +23,22 @@ def update_postion(node, t):
     if t % 600 == 0:
         if t == 0:
             node.current_row = 0
-        elif node.location_list[0][node.current_row + 1] == t + start_t:
-            node.current_row += 1
-        while node.location_list[0][node.current_row + 1] == node.location_list[0][node.current_row]:
+        elif (node.current_row < node.location_list.shape[0] - 1) and node.location_list[0][node.current_row + 1] == t + start_t:
             node.current_row += 1
 
-        current_x = node.location_list[1][node.current_row]
-        current_y = node.location_list[2][node.current_row]
-        node.update_loc(long=current_x, lat=current_y)
-        node.moving_step = update_moving_step(node)
+        while (node.current_row < node.location_list.shape[0] - 1) and node.location_list[0][node.current_row + 1] == node.location_list[0][node.current_row]:
+            node.current_row += 1
+
+        if (node.current_row < node.location_list.shape[0] - 1):
+            current_x = node.location_list[1][node.current_row]
+            current_y = node.location_list[2][node.current_row]
+            node.update_loc(long=current_x, lat=current_y)
+            node.moving_step = update_moving_step(node)
+        else:
+            current_x = node.location_list[1][node.current_row]
+            current_y = node.location_list[2][node.current_row]
+            node.update_loc(long=current_x, lat=current_y)
+            # if the last row, keep the same direction
     else:
         current_x = node.longitude + node.moving_step[0]
         current_y = node.latitude + node.moving_step[1]
