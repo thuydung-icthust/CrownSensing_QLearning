@@ -11,13 +11,21 @@ import tensorflow as tf
 import pandas as pd
 import datetime
 import numpy as np
+import argparse
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--mode", help="Mode of training or resuming",
+                    type=str, default='train')
+parser.add_argument("--filename", help="Path to the checkpoint file",
+                    type=str, default='')
+
+args = parser.parse_args()
 
 seed = 99
 np.random.seed(seed)
 tf.random.set_seed(seed)
 
-acAgent = ActorCritic(param.num_car, dqn_conf.INPUTNUM, param.n_size, dqn_conf.ACTIONNUM)
+acAgent = ActorCritic(param.num_car, dqn_conf.INPUTNUM, param.n_size, dqn_conf.ACTIONNUM, file_name=args.filename)
 
 inputfile = "input/carname.txt"
 
@@ -45,7 +53,11 @@ Tmax = param.update_step
 To = param.cover_time
 Ro = param.cover_radius
 
-for episode_i in range(0, dqn_conf.N_EPISODE):
+idx_start = 0
+if args.mode == 'resume' and args.filename != '':
+    idx_start = int((args.filename.split('.')[0]).split('_')[-1]) + 1 
+
+for episode_i in range(idx_start, dqn_conf.N_EPISODE):
     state = net.get_state()
 
     ep_reward = 0

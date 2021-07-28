@@ -6,7 +6,7 @@ import pandas as pd
 def plot_reward(path):
     data = pd.read_csv(path, header=0, index_col=None)
     running_rws = data['Reward']
-    eps = range(1, 1001, 1)
+    eps = range(1, data.shape[0] + 1, 1)
     plt.plot(eps, running_rws.to_numpy())
     plt.xlabel('episode')
     plt.ylabel('reward')
@@ -18,12 +18,12 @@ def plot_cover_area(path):
     cover_area = data['Cover_area']
     sent_pkg = data['Sent_pkg']
     sharing = data['Sharing_factor']
-    eps = range(1, 201, 1)
+    eps = range(1, data.shape[0] + 1, 1)
     fig, (ax1, ax2, ax3) = plt.subplots(3, 1)
     fig.suptitle('Testing episode')
-    ax1.plot(eps, (cover_area.to_numpy()[:200] / 1000))
-    ax2.plot(eps, (sent_pkg.to_numpy()[:200] / 1000))
-    ax3.plot(eps, (sharing.to_numpy()[:200] / 1000))
+    ax1.plot(eps, (cover_area.to_numpy() / 1000))
+    ax2.plot(eps, (sent_pkg.to_numpy() / 1000))
+    ax3.plot(eps, (sharing.to_numpy() / 1000))
     ax1.set(xlabel='step', ylabel='cover area')
     ax2.set(xlabel='step', ylabel='sent')
     ax3.set(xlabel='step', ylabel='sharing')
@@ -40,6 +40,6 @@ def plot_map():
 
 
 if __name__ == '__main__':
-    # plot_reward('log/data_20210709-2259.csv')
-    # plot_cover_area('Data/data_20210712-2045.csv')
+    # plot_reward('Data/data_20210717-1252.csv')
+    # plot_cover_area('Data/data_20210717-1252.csv')
     plot_map()

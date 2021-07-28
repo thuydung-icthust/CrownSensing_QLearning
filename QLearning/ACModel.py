@@ -15,8 +15,10 @@ class ActorCritic():
                  action_space,
                  gamma=0.99,
                  learning_rate=0.001,
+                 file_name='',
                  hidden_1=128,
                  hidden_2=64):  # The learning rate for the DQN network
+                 
         self.num_node = num_node
         self.input_dim = input_dim
         self.matrix_input_dim = matrix_input_dim
@@ -27,7 +29,7 @@ class ActorCritic():
         self.hidden_1 = hidden_1
         self.hidden_2 = hidden_2
 
-        self.target_model = self.create_model()
+        self.target_model = self.create_model(file_name)
         self.agent_models = self.create_models()
         self.knowledges = [AgentKnowledge(idx) for idx in range(self.num_node)]
         self.action_steps = [30 for i in range(self.num_node)]
@@ -35,7 +37,7 @@ class ActorCritic():
         self.optimizer = keras.optimizers.Adam(learning_rate=self.learning_rate)
         self.loss_func = keras.losses.Huber()
 
-    def create_model(self):
+    def create_model(self, file_name=''):
         self_input = layers.Input(shape=(self.input_dim,))
         matrix_input = layers.Input(shape=(self.matrix_input_dim, self.matrix_input_dim, 1))
         # self info process
@@ -57,6 +59,9 @@ class ActorCritic():
 
         model = keras.Model(inputs=[self_input, matrix_input], outputs=[action, critic])
 
+        if file_name != '':
+            print(f'Load model {file_name}')
+            model.load_weights(f'checkpoint/{file_name}')
         return model
 
     def create_models(self):
