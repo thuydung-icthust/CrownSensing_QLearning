@@ -144,88 +144,15 @@ def calculate_cover_area(net, idx, is_sent):
         if (idx == node.id or is_sent[node.id] == 0):
             continue
         else:
+            ovl_area = overlap_area(inode.latitude, inode.longitude, node.latitude,
+                                        node.longitude) / area
+            # print(f'overlap area: {ovl_area}, factor 1: {factor1}')
             if (is_sent[idx] == 1):
-                factor1 -= overlap_area(inode.latitude, inode.longitude, node.latitude,
-                                        node.longitude) / area
+                factor1 -= ovl_area
             else:
-                factor1 += overlap_area(inode.latitude, inode.longitude, node.latitude,
-                                        node.longitude) / area
+                factor1 += ovl_area
 
     return factor1
-
-
-def calculate_cover_area_v2(net, is_sent):
-    def circle_area(r=net.radius):
-        return np.pi * r * r
-
-    def overlap_area(x1, y1, x2, y2, R=net.radius, r=net.radius):
-        d = math.sqrt((x1 - x2)**2 + (y1 - y2)**2)
-        if d == 0:
-            # One circle is entirely enclosed in the other.
-            return np.pi * min(R, r)**2
-        if d >= r + R:
-            # The circles don't overlap at all.
-            return 0
-
-        r2, R2, d2 = r**2, R**2, d**2
-        alpha = np.arccos((d2 + r2 - R2) / (2 * d * r))
-        beta = np.arccos((d2 + R2 - r2) / (2 * d * R))
-        return (r2 * alpha + R2 * beta -
-                0.5 * (r2 * np.sin(2 * alpha) + R2 * np.sin(2 * beta)))
-
-    total_area = net.num_node * circle_area()
-    print(f'total area: {total_area}')
-    cover_area = np.sum(is_sent) * circle_area()
-    print(f'cover area: {cover_area}')
-
-    ovlap_area_cv = 0
-    ovlap_area_tt = 0
-
-    sent_node = np.argwhere(is_sent)
-    print(f'sent node: {sent_node}')
-
-    for i in range(sent_node.shape[0]):
-        for j in range(i + 1, sent_node.shape[0]):
-            node_i = net.list_node[sent_node[i][0]]
-            node_j = net.list_node[sent_node[j][0]]
-            ovl_area = overlap_area(node_i.latitude, node_i.longitude, node_j.latitude,
-                                    node_j.longitude)
-            ovlap_area_cv += ovl_area
-            print(f'node {sent_node[i][0]} and {sent_node[j][0]} ovlap area: {ovl_area}')
-
-    print(f'cover overlap area: {ovlap_area_cv}')
-
-    for i in range(net.num_node):
-        for j in range(i + 1, net.num_node):
-            node_i = net.list_node[i]
-            node_j = net.list_node[j]
-            ovl_area = overlap_area(node_i.latitude, node_i.longitude, node_j.latitude,
-                                    node_j.longitude)
-            ovlap_area_tt += ovl_area
-            print(f'node {i} and {j} ovlap area: {ovl_area}')
-
-    print(f'total overlap area: {ovlap_area_tt}')
-
-    return (cover_area - ovlap_area_cv) / (total_area - ovlap_area_tt)
-
-
-# def calculate_area_v3(net, is_sent, list_area, tries=para.mc_approximation):
-#     # monte carlos approximation for area
-#     m = 0
-
-#     idxs = np.argwhere(is_sent)
-#     for i in range(tries):
-#         x_rand = np.random.uniform(net.min_x, net.max_x)
-#         y_rand = np.random.uniform(net.min_y, net.max_y)
-#         for id in idxs:
-#             dist = (x_rand - net.list_node[id[0]].latitude)**2 + (y_rand - net.list_node[id[0]].longitude)**2
-#             if (dist < net.radius**2):
-#                 m += 1
-#                 break
-    
-#     list_area.append(m / tries)
-#     return m / tries
-
 
 def get_reward_v2(net, delta_t, is_sent, t=0, logfile="log/dqn_logfile.txt"):
     rewards = np.zeros(net.num_node)
@@ -243,7 +170,7 @@ def get_reward_v2(net, delta_t, is_sent, t=0, logfile="log/dqn_logfile.txt"):
         #     rewards[idx] = para.thetab * factor1 - para.gammab * factor2 - para.sigmab * factor3
         # else:
         rewards[idx] = para.theta * factor1 - para.gamma * factor2 - para.sigma * factor3
-
+        # print(f'factor 1: {factor1} factor 2: {factor2} factor 3: {factor3}')
     return rewards.tolist()
 
 

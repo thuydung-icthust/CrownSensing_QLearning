@@ -85,15 +85,15 @@ class ActorCritic():
             self.agent_models[i].set_weights(target_weights)
 
     def act(self, action_props):
-        import time
-        st = time.time()
+        # import time
+        # st = time.time()
         # a_chosen = tf.random.categorical(action_props, 1)[0,0]
         # a_chosen = 0
         # first = action_props[0,0]
         # second = action_props[0,1]
-        
+
         a_chosen = np.random.choice(2, p=np.squeeze(action_props))
-        print(f'why this take so long {time.time() - st}')
+        # print(f'why this take so long {time.time() - st}')
         return a_chosen
 
     def backprop(self, history, tape):

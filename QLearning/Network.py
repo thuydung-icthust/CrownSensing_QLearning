@@ -59,7 +59,7 @@ class Network:
             # nb_package = self.gnb.total_receiving
             if t % self.step_length == 0 and test:
                 # start_time = time.time()
-                reward = get_reward_v2(self, self.step_length, is_sent, t)
+                reward = get_reward_v2(self, para.update_step, is_sent, t)
                 # print(f'time calculate reward: {time.time() - start_time}')
                 # start_time = time.time()
                 # cover_area = calculate_area_v3(self, is_sent)

@@ -60,6 +60,7 @@ if args.mode == 'resume' and args.filename != '':
     idx_start = int((args.filename.split('.')[0]).split('_')[-1]) + 1 
 
 for episode_i in range(idx_start, dqn_conf.N_EPISODE):
+    start_time = time.time()
     state = net.get_state()
 
     ep_reward = 0
@@ -68,7 +69,7 @@ for episode_i in range(idx_start, dqn_conf.N_EPISODE):
     ep_pkgs = 0
 
     for step in range(0, dqn_conf.MAX_STEP):
-        start_time = time.time()
+        # start_time = time.time()
         is_train = False
         if (step * param.step_length) % Tmax == 0:
             # pass down data for each worker
@@ -144,6 +145,9 @@ for episode_i in range(idx_start, dqn_conf.N_EPISODE):
                     #     tf.expand_dims(state[0], 0), tf.expand_dims(map_state, 0), 0)
 
                     # train the target model
+                # print(f'all opt until backward: {time.time() - start_time}')
+
+                # start_time = time.time()
                 returns = []
                 discounted_sum = 0
 
@@ -172,7 +176,7 @@ for episode_i in range(idx_start, dqn_conf.N_EPISODE):
                 critic_value_history.clear()
                 actor_rewards_history.clear()
                 reset_tracking(net)
-            print(f'step time: {time.time() - start_time}')
+            # print(f'backward training step time: {time.time() - start_time}')
         else:
             state = tf.convert_to_tensor(state, dtype=tf.float32)
             actions = []
@@ -192,14 +196,14 @@ for episode_i in range(idx_start, dqn_conf.N_EPISODE):
                     # print(f'the forward is {time.time() - st}')
 
                     critic_value_history.append(critic_value[0, 0])
-                    st = time.time()
+                    # st = time.time()
                     action = acAgent.act(action_probs)
                     action_probs_history.append(tf.math.log(
                         tf.clip_by_value(action_probs[0, action], 1e-10, 1.0)))
                     actions.append(action)
-                    print(f'the append time is {time.time() - st}')
+                    # print(f'the append time is {time.time() - st}')
 
-                    st = time.time()
+                    # st = time.time()
                     # reset the action_step
                     velocity = (state[i, 2]**2 + state[i, 3]**2)**(1 / 2)
                     if (velocity == 0):
@@ -209,7 +213,7 @@ for episode_i in range(idx_start, dqn_conf.N_EPISODE):
 
                     rmd = int(new_step / param.step_length)
                     acAgent.action_steps[i] = (rmd  + 1) * param.step_length
-                    print(f'the reset update time is {time.time() - st}')
+                    # print(f'the reset update time is {time.time() - st}')
 
                 else:
                     actions.append(0)
@@ -245,7 +249,7 @@ for episode_i in range(idx_start, dqn_conf.N_EPISODE):
                 next_state = net.get_state()
                 terminate = net.check_terminate(step)
                 state = next_state
-            print(f'step time without training: {time.time() - start_time}')
+            # print(f'step time without training: {time.time() - start_time}')
             
         # print(f'step time: {time.time() - start_time}')
     if terminate:
@@ -267,8 +271,8 @@ for episode_i in range(idx_start, dqn_conf.N_EPISODE):
             f, encoding='utf-8', index=False, header=False)
 
     if (episode_i % 10 == 0):
-        template = "Running reward: {:.2f} - Episode reward: {:.2f} - Episode {}"
-        print(template.format(running_reward, ep_reward, episode_i))
+        template = "Execution time: {:.2f} - Running reward: {:.2f} - Episode reward: {:.2f} - Episode {}"
+        print(template.format(time.time() - start_time,running_reward, ep_reward, episode_i))
 
     if (episode_i % SAVE_NETWORK == 0):
         acAgent.save_network(episode_i)
