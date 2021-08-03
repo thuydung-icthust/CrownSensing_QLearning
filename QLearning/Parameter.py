@@ -1,7 +1,7 @@
 import numpy as np
 
-theta = 0.5
-gamma = 0.2
+theta = 0.6
+gamma = 0.1
 sigma = 0.3
 
 thetab = 0.9
@@ -15,7 +15,7 @@ input_dim = 16
 n_size = 100
 num_car = 15
 
-cover_radius = 100
+cover_radius = 1000
 cover_time = 60  # To
 update_step = 240  # Tmax
 step_length = 10
@@ -26,12 +26,12 @@ min_time_step = 25200
 max_time_step = 82800
 max_t = max_time_step - min_time_step
 
-mc_approximation = 50000
+mc_approximation = 100000
 
 # grid size
-max_x = 1 + cover_radius
-max_y = 1 + cover_radius
-min_x = -1 - cover_radius
-min_y = -1 - cover_radius
+max_x = 1 
+max_y = 1 
+min_x = -1 
+min_y = -1 
 
 random_log_file = "./log/random.txt"

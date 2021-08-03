@@ -5,7 +5,7 @@ from Node_Method import to_string, find_receiver, update_postion
 
 
 class Node:
-    def __init__(self, car_name=None, location_list=None, cover_radius=para.cover_radius, cover_time=para.cover_time, current_velocity=None,
+    def __init__(self, car_name=None, location_list=None, cover_radius=None, cover_time=para.cover_time, current_velocity=None,
                  energy=100.0, prob=para.initial_prob, avg_energy=0.0, id=None, is_active=True):
         self.location_list = location_list
         self.car_name = car_name

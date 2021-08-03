@@ -32,7 +32,7 @@ def plot_cover_area(path):
 
 def plot_map():
     inputfile = "input/carname.txt"
-    total_node, nodes, min_x, max_x, min_y, max_y = read_data(inputfile)
+    total_node, nodes, min_x, max_x, min_y, max_y, _ = read_data(inputfile)
     for node_i in nodes:
         plt.plot(node_i.location_list[1, :], node_i.location_list[2, :])
 

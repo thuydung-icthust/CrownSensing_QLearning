@@ -30,7 +30,6 @@ class ActorCritic():
         self.hidden_2 = hidden_2
 
         self.target_model = self.create_model(file_name)
-        self.agent_models = self.create_models()
         self.knowledges = [AgentKnowledge(idx) for idx in range(self.num_node)]
         self.action_steps = [30 for i in range(self.num_node)]
 
@@ -64,13 +63,13 @@ class ActorCritic():
             model.load_weights(f'checkpoint/{file_name}')
         return model
 
-    def create_models(self):
-        models = []
-        for i in range(self.num_node):
-            model = self.create_model()
-            models.append(model)
+    # def create_models(self):
+    #     models = []
+    #     for i in range(self.num_node):
+    #         model = self.create_model()
+    #         models.append(model)
 
-        return models
+    #     return models
 
     def forward(self, node_state, map_state, idx):
         # actions, value = self.agent_models[idx]([node_state, map_state])
@@ -86,8 +85,15 @@ class ActorCritic():
             self.agent_models[i].set_weights(target_weights)
 
     def act(self, action_props):
-        a_chosen = np.random.choice(self.output_dim, p=np.squeeze(action_props))
-
+        import time
+        st = time.time()
+        # a_chosen = tf.random.categorical(action_props, 1)[0,0]
+        # a_chosen = 0
+        # first = action_props[0,0]
+        # second = action_props[0,1]
+        
+        a_chosen = np.random.choice(2, p=np.squeeze(action_props))
+        print(f'why this take so long {time.time() - st}')
         return a_chosen
 
     def backprop(self, history, tape):

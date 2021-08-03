@@ -55,8 +55,14 @@ def read_data(filename="./input/carname.txt"):
         node.description()
         nodes.append(node)
 
-    print(max_x, min_x, min_y, max_y)
-    return len(node_pos), nodes, min_x, max_x, min_y, max_y
+    norm_radius = para.cover_radius / max(max_x, max_y)
+    max_x = max_x / max(max_x, abs(min_x))
+    min_x = min_x / max(max_x, abs(min_x))
+    min_y = min_y / max(max_y, abs(min_y))
+    max_y = max_y / max(max_y, abs(min_y))
+    
+    print(max_x, min_x, min_y, max_y, norm_radius)
+    return len(node_pos), nodes, min_x, max_x, min_y, max_y, norm_radius
 
 
 def read_csv_data(filename):

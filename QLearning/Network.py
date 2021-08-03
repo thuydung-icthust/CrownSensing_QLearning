@@ -1,17 +1,14 @@
 from getdata import read_data
 from GnbServer import GnbServer
-import csv
-from scipy.spatial import distance
-from tensorflow.python.ops.gen_random_ops import TruncatedNormal
 import Parameter as para
 import os.path
 import numpy as np
-
+import time
 from Network_Method import *
-
+from helper import calculate_area_v5
 
 class Network:
-    def __init__(self, list_node=None, num_node=None, nodes=None, gnb=None, location_file=None, step_length=None, min_x=None, max_x=None, min_y=None, max_y=None):
+    def __init__(self, list_node=None, num_node=None, nodes=None, gnb=None,radius=None, location_file=None, step_length=None, min_x=None, max_x=None, min_y=None, max_y=None):
         self.list_node = list_node
         self.num_node = num_node
         self.nodes = nodes
@@ -22,6 +19,7 @@ class Network:
         self.min_y = min_y
         self.max_x = max_x
         self.max_y = max_y
+        self.radius = radius
         self.map_grid = get_grid_boundary(self.max_x, self.max_y, self.min_x, self.min_y)
         self.not_tracking = np.zeros((para.n_size * para.n_size, 1))
 
@@ -60,8 +58,13 @@ class Network:
             # print(t)
             # nb_package = self.gnb.total_receiving
             if t % self.step_length == 0 and test:
+                # start_time = time.time()
                 reward = get_reward_v2(self, self.step_length, is_sent, t)
-                cover_area = calculate_area_v3(self, is_sent)
+                # print(f'time calculate reward: {time.time() - start_time}')
+                # start_time = time.time()
+                # cover_area = calculate_area_v3(self, is_sent)
+                cover_area = calculate_area_v5(self.max_x,self.min_x,self.max_y, self.min_y, is_sent, self.list_node,self.radius**2,100)
+                # print(f'area time: {time.time() - start_time}')
 
                 if self.gnb.total_receiving != 0:
                     uniform_sent_ratio = tf.convert_to_tensor(
@@ -72,6 +75,7 @@ class Network:
                 else:
                     sharing_factor = 0
                 sent_factor = self.gnb.total_receiving / (self.step_length * self.num_node)
+                # print(f'calculate logic time: {time.time() - start_time}')
 
             t += 1
 
@@ -126,11 +130,22 @@ class Network:
 
 if __name__ == '__main__':
     inputfile = "input/carname.txt"
-    total_node, nodes, min_x, max_x, min_y, max_y = read_data(inputfile)
+    total_node, nodes, min_x, max_x, min_y, max_y, rd = read_data(inputfile)
     gnb = GnbServer(total_node=total_node)
     net = Network(list_node=nodes, num_node=total_node, gnb=gnb,
-                  step_length=para.cover_time, min_x=min_x, max_x=max_x, min_y=min_y, max_y=max_y)
+                  step_length=para.cover_time, min_x=min_x, max_x=max_x, min_y=min_y, max_y=max_y, radius=rd)
 
-    is_sent = [0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0]
+    is_sent = [1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0]
     # test_kld()
-    print(calculate_area_v3(net, is_sent))
+    import multiprocessing
+    import threading
+    import time
+    start_time = time.time()
+    print(calculate_area_v3(net, is_sent, tries= int(para.mc_approximation / 2)))
+    print(f'execution time 1: {time.time() - start_time}')
+    
+    start_time = time.time()
+    print(calculate_area_v5(net.max_x,net.min_x,net.max_y, net.min_y, is_sent, net.list_node,net.radius**2,100))
+    print(f'execution time 2: {time.time() - start_time}')
+
+    

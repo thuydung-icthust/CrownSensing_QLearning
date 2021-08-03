@@ -85,7 +85,7 @@ def get_current_map_state(net):
         for node in net.list_node:
 
             inter_area = ratio_intersection(
-                x0, x1, y0, y1, node.longitude, node.latitude, para.cover_radius)
+                x0, x1, y0, y1, node.longitude, node.latitude, net.radius)
             if state_rw[i] < inter_area * node.prob:
                 state_rw[i] = inter_area * node.prob
     for i in range(0, total_cell):
@@ -114,12 +114,13 @@ def get_reward(net, delta_t, t=0, logfile="log/dqn_logfile.txt"):
 
 def calculate_cover_area(net, idx, is_sent):
     factor1 = 0
+    if (np.all(np.array(is_sent) == 0)):
+        return factor1
+
     inode = net.list_node[idx]
-
-    def circle_area(r=para.cover_radius):
-        return np.pi * r * r
-
-    def overlap_area(x1, y1, x2, y2, R=para.cover_radius, r=para.cover_radius):
+    area = np.pi * (net.radius**2)
+    
+    def overlap_area(x1, y1, x2, y2, R=net.radius, r=net.radius):
         d = math.sqrt((x1 - x2)**2 + (y1 - y2)**2)
         if d == 0:
             # One circle is entirely enclosed in the other.
@@ -145,19 +146,19 @@ def calculate_cover_area(net, idx, is_sent):
         else:
             if (is_sent[idx] == 1):
                 factor1 -= overlap_area(inode.latitude, inode.longitude, node.latitude,
-                                        node.longitude) / circle_area()
+                                        node.longitude) / area
             else:
                 factor1 += overlap_area(inode.latitude, inode.longitude, node.latitude,
-                                        node.longitude) / circle_area()
+                                        node.longitude) / area
 
     return factor1
 
 
 def calculate_cover_area_v2(net, is_sent):
-    def circle_area(r=para.cover_radius):
+    def circle_area(r=net.radius):
         return np.pi * r * r
 
-    def overlap_area(x1, y1, x2, y2, R=para.cover_radius, r=para.cover_radius):
+    def overlap_area(x1, y1, x2, y2, R=net.radius, r=net.radius):
         d = math.sqrt((x1 - x2)**2 + (y1 - y2)**2)
         if d == 0:
             # One circle is entirely enclosed in the other.
@@ -208,21 +209,22 @@ def calculate_cover_area_v2(net, is_sent):
     return (cover_area - ovlap_area_cv) / (total_area - ovlap_area_tt)
 
 
-def calculate_area_v3(net, is_sent):
-    # monte carlos approximation for area
-    m = 0
+# def calculate_area_v3(net, is_sent, list_area, tries=para.mc_approximation):
+#     # monte carlos approximation for area
+#     m = 0
 
-    idxs = np.argwhere(is_sent)
-    for i in range(para.mc_approximation):
-        x_rand = np.random.uniform(para.min_x, para.max_x)
-        y_rand = np.random.uniform(para.min_y, para.max_y)
-        for id in idxs:
-            dist = (x_rand - net.list_node[id[0]].latitude)**2 + (y_rand - net.list_node[id[0]].longitude)**2
-            if (dist < para.cover_radius**2):
-                m += 1
-                break
-
-    return m / para.mc_approximation
+#     idxs = np.argwhere(is_sent)
+#     for i in range(tries):
+#         x_rand = np.random.uniform(net.min_x, net.max_x)
+#         y_rand = np.random.uniform(net.min_y, net.max_y)
+#         for id in idxs:
+#             dist = (x_rand - net.list_node[id[0]].latitude)**2 + (y_rand - net.list_node[id[0]].longitude)**2
+#             if (dist < net.radius**2):
+#                 m += 1
+#                 break
+    
+#     list_area.append(m / tries)
+#     return m / tries
 
 
 def get_reward_v2(net, delta_t, is_sent, t=0, logfile="log/dqn_logfile.txt"):
@@ -237,10 +239,10 @@ def get_reward_v2(net, delta_t, is_sent, t=0, logfile="log/dqn_logfile.txt"):
             factor2 = 0
         factor3 = net.gnb.msg_from_node[idx] / delta_t
 
-        if (factor1 > 0.85):  # if the cover factor is small, add additional weight to this factor to push it up
-            rewards[idx] = para.thetab * factor1 - para.gammab * factor2 - para.sigmab * factor3
-        else:
-            rewards[idx] = para.theta * factor1 - para.gamma * factor2 - para.sigma * factor3
+        # if (factor1 > 0.85):  # if the cover factor is small, add additional weight to this factor to push it up
+        #     rewards[idx] = para.thetab * factor1 - para.gammab * factor2 - para.sigmab * factor3
+        # else:
+        rewards[idx] = para.theta * factor1 - para.gamma * factor2 - para.sigma * factor3
 
     return rewards.tolist()
 
@@ -271,3 +273,4 @@ def test_kld():
     a = tf.convert_to_tensor(np.random.rand(10))
     b = tf.convert_to_tensor(np.random.rand(10))
     print(kl_divergence(a, b).numpy())
+
