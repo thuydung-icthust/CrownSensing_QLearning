@@ -48,23 +48,16 @@ class Network:
     def run_per_second(self, optimizer=None, com_func=communicate_func, log_file="./log/logfile.txt"):
         return self.communicate(com_func)
 
-    def simulate(self, start_t=0, optimizer="dqn", com_func=None, maxtime=36000, test=False, logfile="./log/logfile.txt"):
+    def simulate(self, start_t=0, optimizer="dqn", com_func=None, acted_agent=[], delta_time=36000, test=False, logfile="./log/logfile.txt"):
         t = start_t
-
-        while(t < maxtime + start_t):
+        while(t < delta_time + start_t):
             self.update_node_position(t)
             is_sent = self.run_per_second(com_func=com_func, log_file=logfile)
 
-            # print(t)
-            # nb_package = self.gnb.total_receiving
-            if t % self.step_length == 0 and test:
+            if t == start_t:
                 # start_time = time.time()
-                reward = get_reward_v2(self, para.update_step, is_sent, t)
-                # print(f'time calculate reward: {time.time() - start_time}')
-                # start_time = time.time()
-                # cover_area = calculate_area_v3(self, is_sent)
                 cover_area = calculate_area_v5(self.max_x,self.min_x,self.max_y, self.min_y, is_sent, self.list_node,self.radius**2,100)
-                # print(f'area time: {time.time() - start_time}')
+                reward = get_reward_v2(self, acted_agent, cover_area, para.update_step)
 
                 if self.gnb.total_receiving != 0:
                     uniform_sent_ratio = tf.convert_to_tensor(
@@ -75,6 +68,7 @@ class Network:
                 else:
                     sharing_factor = 0
                 sent_factor = self.gnb.total_receiving / (self.step_length * self.num_node)
+                self.reset_node_prob()
                 # print(f'calculate logic time: {time.time() - start_time}')
 
             t += 1
@@ -98,8 +92,8 @@ class Network:
     def get_reward(self, t):
         return get_reward(self, self.step_length, t=t)
 
-    def check_terminate(self, step):
-        if step * self.step_length == para.max_t:
+    def check_terminate(self, time):
+        if time >= para.max_t:
             return True
         return False
 
@@ -109,23 +103,23 @@ class Network:
             prob.append(node.prob)
         return prob
 
-    def update_nodes_prob(self, new_prob):
-        for i in range(len(self.list_node)):
+    def update_nodes_prob(self, new_prob, acted_agent):
+        for i in acted_agent:
             self.list_node[i].update_prob(new_prob[i])
 
-    def update_node_discrete_prob(self, new_prob):
-        for i, node in enumerate(self.list_node):
-            node.update_prob(new_prob[i])
+    def reset_node_prob(self):
+        for node in self.list_node:
+            node.update_prob(0)
 
-    def step(self, action, step, ep, optimizer="dqn", test=False):
-        self.update_nodes_prob(action)
+    def step(self, action, acted_agent, current_time, delta_time, ep, optimizer="dqn", test=False):
+        self.update_nodes_prob(action, acted_agent)
 
         # t = 0
         # while t < self.step_length:
         #     self.run_per_second(t, communicate_func)
         #     t+= 1
-        return self.simulate(start_t=step * self.step_length + 1, com_func=communicate_func,
-                             maxtime=self.step_length, logfile="./log/logfile_" + str(ep) + ".txt", optimizer=optimizer, test=test)
+        return self.simulate(start_t=current_time, com_func=communicate_func,
+                             delta_time= delta_time, acted_agent=acted_agent, logfile="./log/logfile_" + str(ep) + ".txt", optimizer=optimizer, test=test)
 
 
 if __name__ == '__main__':

@@ -31,7 +31,7 @@ class ActorCritic():
 
         self.target_model = self.create_model(file_name)
         self.knowledges = [AgentKnowledge(idx) for idx in range(self.num_node)]
-        self.action_steps = [30 for i in range(self.num_node)]
+        self.action_steps = [0 for i in range(self.num_node)]
 
         self.optimizer = keras.optimizers.Adam(learning_rate=self.learning_rate)
         self.loss_func = keras.losses.Huber()
@@ -96,19 +96,19 @@ class ActorCritic():
         # print(f'why this take so long {time.time() - st}')
         return a_chosen
 
-    def backprop(self, history, tape):
+    def backprop(self, action_probs_history, critic_value_history, returns, tape):
         actor_losses = []
         critic_losses = []
-
-        for log_prob, value, ret in history:
-            diff = ret - value
-            actor_losses.append(-log_prob * diff)
-
-            critic_losses.append(self.loss_func(tf.expand_dims(ret, 0), tf.expand_dims(value, 0)))
+        for i in range(self.num_node):
+            history = zip(action_probs_history[i], critic_value_history[i], returns[i])
+            for log_prob, value, ret in history:
+                diff = ret - value
+                actor_losses.append(-log_prob * diff)
+                critic_losses.append(self.loss_func(tf.expand_dims(ret, 0), tf.expand_dims(value, 0)))
 
         # Backpropagation
         loss_value = sum(actor_losses) + sum(critic_losses)
-        print(loss_value)
+        # print(loss_value)
         grads = tape.gradient(loss_value, self.target_model.trainable_variables)
         self.optimizer.apply_gradients(zip(grads, self.target_model.trainable_variables))
 

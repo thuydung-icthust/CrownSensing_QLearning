@@ -154,11 +154,11 @@ def calculate_cover_area(net, idx, is_sent):
 
     return factor1
 
-def get_reward_v2(net, delta_t, is_sent, t=0, logfile="log/dqn_logfile.txt"):
-    rewards = np.zeros(net.num_node)
+def get_reward_v2(net, acted_agent, factor1, delta_t, logfile="log/dqn_logfile.txt"):
+    rewards = [0 for i in range(net.num_node)]
 
-    for idx in range(net.num_node):
-        factor1 = calculate_cover_area(net, idx, is_sent)  # cover area, take into account the overlapping area
+    for idx in acted_agent:
+        # factor1 = calculate_cover_area(net, idx, is_sent)  # cover area, take into account the overlapping area
         if net.gnb.total_receiving != 0:
             factor2 = abs((net.gnb.msg_from_node[idx] / net.gnb.total_receiving) -
                           (1 / net.num_node))  # sent ratio / uniform ratio
@@ -171,23 +171,23 @@ def get_reward_v2(net, delta_t, is_sent, t=0, logfile="log/dqn_logfile.txt"):
         # else:
         rewards[idx] = para.theta * factor1 - para.gamma * factor2 - para.sigma * factor3
         # print(f'factor 1: {factor1} factor 2: {factor2} factor 3: {factor3}')
-    return rewards.tolist()
-
-
-def get_reward_v3(net, delta_t, is_sent, t=0, logfile="log/dqn_logfile.txt"):
-    rewards = 0
-
-    factor1 = calculate_cover_area_v2(net, is_sent)  # cover area, take into account the overlapping area
-
-    uniform_sent_ratio = tf.convert_to_tensor([1 / net.num_node for i in range(net.num_node)])
-    real_sent_ratio = tf.convert_to_tensor([i / net.gnb.total_receiving for i in net.gnb.msg_from_node])
-    factor2 = kl_divergence(uniform_sent_ratio, real_sent_ratio).numpy()
-
-    factor3 = net.gnb.total_receiving / (delta_t * net.num_node)
-
-    rewards = para.theta * factor1 - para.gamma * factor2 - para.sigma * factor3
-
     return rewards
+
+
+# def get_reward_v3(net, delta_t, is_sent, t=0, logfile="log/dqn_logfile.txt"):
+#     rewards = 0
+
+#     factor1 = calculate_cover_area_v2(net, is_sent)  # cover area, take into account the overlapping area
+
+#     uniform_sent_ratio = tf.convert_to_tensor([1 / net.num_node for i in range(net.num_node)])
+#     real_sent_ratio = tf.convert_to_tensor([i / net.gnb.total_receiving for i in net.gnb.msg_from_node])
+#     factor2 = kl_divergence(uniform_sent_ratio, real_sent_ratio).numpy()
+
+#     factor3 = net.gnb.total_receiving / (delta_t * net.num_node)
+
+#     rewards = para.theta * factor1 - para.gamma * factor2 - para.sigma * factor3
+
+#     return rewards
 
 
 def reset_tracking(net):
