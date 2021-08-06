@@ -161,11 +161,6 @@ for episode_i in range(idx_start, dqn_conf.N_EPISODE):
     # Update running reward to check condition for solving
     running_reward = 0.05 * ep_reward + (1 - 0.05) * running_reward
 
-    # Clear the loss and reward history
-    action_probs_history.clear()
-    critic_value_history.clear()
-    actor_rewards_history.clear()
-
     save_data = np.hstack(
         [episode_i + 1, ep_reward, running_reward, ep_area / MAX_STEP, ep_sharing / MAX_STEP, ep_pkgs / MAX_STEP]).reshape(1, 6)
 
