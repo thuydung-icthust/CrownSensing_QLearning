@@ -12,6 +12,7 @@ import pandas as pd
 import datetime
 import numpy as np
 import argparse
+import time
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--mode", help="Mode of training or resuming",
@@ -64,6 +65,7 @@ for episode_i in range(idx_start, dqn_conf.N_EPISODE):
     ep_sharing = 0
     ep_pkgs = 0
 
+    start_time = time.time()
     t = 0
     while t < MAX_SIMULATE_TIME:
         action_probs_history = [[] for i in range(total_node)]
@@ -160,7 +162,7 @@ for episode_i in range(idx_start, dqn_conf.N_EPISODE):
 
     # Update running reward to check condition for solving
     running_reward = 0.05 * ep_reward + (1 - 0.05) * running_reward
-
+    acAgent.reset_action_step()
     save_data = np.hstack(
         [episode_i + 1, ep_reward, running_reward, ep_area / MAX_STEP, ep_sharing / MAX_STEP, ep_pkgs / MAX_STEP]).reshape(1, 6)
 
@@ -169,8 +171,8 @@ for episode_i in range(idx_start, dqn_conf.N_EPISODE):
             f, encoding='utf-8', index=False, header=False)
 
     if (episode_i % 10 == 0):
-        template = "Running reward: {:.2f} - Episode reward: {:.2f} - Episode {}"
-        print(template.format(running_reward, ep_reward, episode_i))
+        template = "Episode time: {:.2f} - Running reward: {:.2f} - Episode reward: {:.2f} - Episode {}"
+        print(template.format(time.time() - start_time,running_reward, ep_reward, episode_i))
 
     if (episode_i % SAVE_NETWORK == 0):
         acAgent.save_network(episode_i)

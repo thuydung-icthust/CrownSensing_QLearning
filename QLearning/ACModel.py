@@ -112,6 +112,10 @@ class ActorCritic():
         grads = tape.gradient(loss_value, self.target_model.trainable_variables)
         self.optimizer.apply_gradients(zip(grads, self.target_model.trainable_variables))
 
+    def reset_action_step(self):
+        for i in range(self.num_node): 
+            self.action_steps[i] = 0
+
     def save_network(self, ep):
         save_path = 'checkpoint/ac_ep_{}.h5'
         self.target_model.save_weights(save_path.format(ep))
