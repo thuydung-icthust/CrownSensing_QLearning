@@ -106,16 +106,16 @@ class ActorCritic():
                 diff = ret - value
                 actor_losses.append(-log_prob * diff)
                 critic_losses.append(self.loss_func(tf.expand_dims(ret, 0), tf.expand_dims(value, 0)))
-        print(f'prepare loss time: {time.time() - stime}')
-        stime = time.time()
+        # print(f'prepare loss time: {time.time() - stime}')
+        # stime = time.time()
         # Backpropagation
         loss_value = sum(actor_losses) + sum(critic_losses)
         # print(loss_value)
-        print(f'loss val time: {time.time() - stime}')
-        stime = time.time()
+        # print(f'loss val time: {time.time() - stime}')
+        # stime = time.time()
         grads = tape.gradient(loss_value, self.target_model.trainable_variables)
         self.optimizer.apply_gradients(zip(grads, self.target_model.trainable_variables))
-        print(f'app gradient time: {time.time() - stime}')
+        # print(f'app gradient time: {time.time() - stime}')
         
     def reset_action_step(self):
         for i in range(self.num_node): 

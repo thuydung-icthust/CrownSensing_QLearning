@@ -5,7 +5,7 @@ import os.path
 import numpy as np
 import time
 from Network_Method import *
-from helper import calculate_area_v5
+from helper import calculate_area_v5, calculate_area_v6
 
 class Network:
     def __init__(self, list_node=None, num_node=None, nodes=None, gnb=None,radius=None, location_file=None, step_length=None, min_x=None, max_x=None, min_y=None, max_y=None):
@@ -48,16 +48,16 @@ class Network:
     def run_per_second(self, optimizer=None, com_func=communicate_func, log_file="./log/logfile.txt"):
         return self.communicate(com_func)
 
-    def simulate(self, start_t=0, optimizer="dqn", com_func=None, acted_agent=[], delta_time=36000, test=False, logfile="./log/logfile.txt"):
+    def simulate(self, start_t=0, margin_time=None, optimizer="dqn", com_func=None, acted_agent=[], delta_time=36000, test=False, logfile="./log/logfile.txt"):
         t = start_t
         while(t < delta_time + start_t):
             self.update_node_position(t)
-            is_sent = self.run_per_second(com_func=com_func, log_file=logfile)
 
             if t == start_t:
+                is_sent = self.run_per_second(com_func=com_func, log_file=logfile)
                 # start_time = time.time()
-                cover_area = calculate_area_v5(self.max_x,self.min_x,self.max_y, self.min_y, is_sent, self.list_node,self.radius**2,100)
-                reward = get_reward_v2(self, acted_agent, cover_area, para.update_step)
+                cover_area, overlap_area = calculate_area_v6(is_sent, self.list_node,self.radius**2,100)
+                reward = get_reward_v2(self, acted_agent, cover_area, margin_time)
 
                 if self.gnb.total_receiving != 0:
                     uniform_sent_ratio = tf.convert_to_tensor(
@@ -67,14 +67,15 @@ class Network:
                     sharing_factor = kl_divergence(uniform_sent_ratio, real_sent_ratio).numpy()
                 else:
                     sharing_factor = 0
-                sent_factor = self.gnb.total_receiving / (self.step_length * self.num_node)
+                idxs = np.argwhere(is_sent)
+                sent_factor =  idxs.shape[0] / self.num_node
                 self.reset_node_prob()
                 # print(f'calculate logic time: {time.time() - start_time}')
 
             t += 1
 
         if test:
-            return reward, cover_area, sharing_factor, sent_factor
+            return reward, cover_area, overlap_area, sharing_factor, sent_factor
 
         return None
 
@@ -111,14 +112,15 @@ class Network:
         for node in self.list_node:
             node.update_prob(0)
 
-    def step(self, action, acted_agent, current_time, delta_time, ep, optimizer="dqn", test=False):
+    def step(self, action, acted_agent, margin_time, current_time, delta_time, ep, optimizer="dqn", test=False):
         self.update_nodes_prob(action, acted_agent)
 
         # t = 0
         # while t < self.step_length:
         #     self.run_per_second(t, communicate_func)
         #     t+= 1
-        return self.simulate(start_t=current_time, com_func=communicate_func,
+        delta_t = current_time - margin_time
+        return self.simulate(start_t=current_time, margin_time=delta_t, com_func=communicate_func,
                              delta_time= delta_time, acted_agent=acted_agent, logfile="./log/logfile_" + str(ep) + ".txt", optimizer=optimizer, test=test)
 
 
@@ -142,4 +144,6 @@ if __name__ == '__main__':
     print(calculate_area_v5(net.max_x,net.min_x,net.max_y, net.min_y, is_sent, net.list_node,net.radius**2,100))
     print(f'execution time 2: {time.time() - start_time}')
 
-    
+    start_time = time.time()
+    print(calculate_area_v6(is_sent, net.list_node,net.radius**2,100))
+    print(f'execution time 3: {time.time() - start_time}')

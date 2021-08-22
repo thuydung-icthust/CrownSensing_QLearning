@@ -15,7 +15,7 @@ input_dim = 16
 n_size = 100
 num_car = 15
 
-cover_radius = 1000
+cover_radius = 200
 cover_time = 60  # To
 update_step = 240  # Tmax
 step_length = 10

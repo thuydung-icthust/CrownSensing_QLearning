@@ -164,7 +164,10 @@ def get_reward_v2(net, acted_agent, factor1, delta_t, logfile="log/dqn_logfile.t
                           (1 / net.num_node))  # sent ratio / uniform ratio
         else:
             factor2 = 0
-        factor3 = net.gnb.msg_from_node[idx] / delta_t
+        if delta_t == 0:
+            factor3 = 0
+        else:
+            factor3 = net.gnb.msg_from_node[idx] / delta_t
 
         # if (factor1 > 0.85):  # if the cover factor is small, add additional weight to this factor to push it up
         #     rewards[idx] = para.thetab * factor1 - para.gammab * factor2 - para.sigmab * factor3

@@ -149,5 +149,62 @@ def calculate_area_v5(max_x, min_x, max_y, min_y, is_sent,list_node,radius, freq
     # list_area.append(m / (frequency * frequency))
     return m / (frequency * frequency)
 
+def calculate_area_v6(is_sent,list_node,radius, frequency):
+    node_cord = []
+    for i in range(len(list_node)):
+        node_cord.append([list_node[i].latitude, list_node[i].longitude])
+
+    max_x = -1e9
+    max_y = -1e9
+    min_x = 1e9
+    min_y = 1e9
+    for x, y in node_cord:
+        if x > max_x:
+            max_x = x
+        if x < min_x:
+            min_x = x
+        if y > max_y:
+            max_y = y
+        if y < min_y:
+            min_y = y
+
+    step_x = (max_x - min_x) / frequency
+    step_y = (max_y - min_y) / frequency
+
+    if len(node_cord) ==0:
+        return 0
+    n = 0 # for total possible area
+    m = 0 # for actual area
+    p = 0 # for overlap area
+    x = min_x
+    y = min_y
+    is_add = False
+    is_ovl = False
+    for i in range(frequency):
+        # x = min_x + i * step_x
+        for j in range(frequency):
+            # y = min_y + j * step_y
+            is_add = False
+            is_ovl = False
+            for k, node in enumerate(node_cord):
+                # print(f'{x} {y}')
+                # dist = distance.euclidean((x,y), (list_node[id[0]].latitude, list_node[id[0]].longitude))
+                dist = (x- node[0])**2 + (y - node[1])**2
+                if (dist < radius):
+                    if not is_add:
+                        n += 1
+                        is_add = True
+                    if is_sent[k] == 1:
+                        if not is_ovl:
+                            m += 1
+                            is_ovl = True
+                        else: 
+                            p += 1
+                            break
+            y += step_y
+        x += step_x
+        y = min_y
+    # list_area.append(m / (frequency * frequency))
+    return m / n, p / n
 if __name__ == '__main__':
     print(get_area(1, 2, 1, 2, 3, 3, 2))
