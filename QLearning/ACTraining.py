@@ -56,7 +56,7 @@ Ro = param.cover_radius
 idx_start = 0
 if args.mode == 'resume' and args.filename != '':
     idx_start = int((args.filename.split('.')[0]).split('_')[-1]) + 1 
-
+s_time = time.time()
 for episode_i in range(idx_start, dqn_conf.N_EPISODE):
     state = net.get_state()
 
@@ -72,6 +72,8 @@ for episode_i in range(idx_start, dqn_conf.N_EPISODE):
         critic_value_history = [[] for i in range(total_node)]
         actor_rewards_history = [[] for i in range(total_node)]
         with tf.GradientTape() as tape:
+            print(f'gradient taping: {time.time() - start_time}')
+            start_time = time.time()
             delta_t = 0
             # pass down data for each worker
             for i in range(param.num_car):
@@ -82,16 +84,23 @@ for episode_i in range(idx_start, dqn_conf.N_EPISODE):
                 state = tf.convert_to_tensor(state, dtype=tf.float32)
                 actions = []
                 acted_agents = []
+                print(f'convert state: {time.time() - start_time}')
+                start_time = time.time()
                 for i in range(param.num_car):
                     if (delta_t + t == acAgent.action_steps[i]):
                         acted_agents.append(i)
                         map_state = acAgent.knowledges[i].build_matrix_state(acAgent.action_steps[i])
                         map_state = tf.convert_to_tensor(map_state, dtype=tf.float32)
+                        print(f'build matrix: {time.time() - start_time}')
+                        start_time = time.time()
                         action_probs, critic_value = acAgent.forward(
                             tf.expand_dims(state[i], 0), tf.expand_dims(map_state, 0), i)
-
+                        print(f'forward pass: {time.time() - start_time}')
+                        start_time = time.time()
                         critic_value_history[i].append(critic_value[0, 0])
                         action = acAgent.act(action_probs)
+                        print(f'agent i act: {time.time() - start_time}')
+                        start_time = time.time()
                         action_probs_history[i].append(tf.math.log(
                             tf.clip_by_value(action_probs[0, action], 1e-10, 1.0)))
                         actions.append(action)
@@ -104,12 +113,18 @@ for episode_i in range(idx_start, dqn_conf.N_EPISODE):
                             new_step = int(1 / ((1 / To) + (velocity / (2 * Ro))))
                         rmd = int(new_step / param.step_length)
                         acAgent.action_steps[i] = t + delta_t + (1 + rmd) * param.step_length
+                        print(f'update action step: {time.time() - start_time}')
+                        start_time = time.time()
                     else:
                         actions.append(0)   
+                print(f'agent act time: {time.time() - start_time}')
+                start_time = time.time()
                 # print(f'action_steps: {acAgent.action_steps}')
                 # print(f'actions: {actions}')
                 reward, cover_area, sharing_factor, sent_factor = net.step(actions, acted_agents, t + delta_t, min(acAgent.action_steps), episode_i, test=True)
                 delta_t += min(acAgent.action_steps) - t - delta_t
+                print(f'env step time: {time.time() - start_time}')
+                start_time = time.time()
                 
                 # print(f'reward: {reward}')
                 # print(f'cover_area: {cover_area}')
@@ -141,7 +156,9 @@ for episode_i in range(idx_start, dqn_conf.N_EPISODE):
                 returns[i] = np.array(returns[i])
                 returns[i] = (returns[i] - np.mean(returns[i])) / (np.std(returns[i]) + param.eps)
                 returns[i] = returns[i].tolist()
-
+            
+            print(f'backprop prepare time: {time.time() - start_time}')
+            start_time = time.time()
             # print(len(action_probs_history))
 
             # tape.watch(action_probs_history)
@@ -155,11 +172,12 @@ for episode_i in range(idx_start, dqn_conf.N_EPISODE):
             del(critic_value_history)
             del(actor_rewards_history)
             reset_tracking(net)
-
+            print(f'backprop time: {time.time() - start_time}')
         t += Tmax
         if terminate:
             break
 
+    print(f'finish training {time.time() - s_time}')
     # Update running reward to check condition for solving
     running_reward = 0.05 * ep_reward + (1 - 0.05) * running_reward
     acAgent.reset_action_step()
@@ -172,7 +190,7 @@ for episode_i in range(idx_start, dqn_conf.N_EPISODE):
 
     if (episode_i % 10 == 0):
         template = "Episode time: {:.2f} - Running reward: {:.2f} - Episode reward: {:.2f} - Episode {}"
-        print(template.format(time.time() - start_time,running_reward, ep_reward, episode_i))
+        print(template.format(time.time() - s_time,running_reward, ep_reward, episode_i))
 
     if (episode_i % SAVE_NETWORK == 0):
         acAgent.save_network(episode_i)

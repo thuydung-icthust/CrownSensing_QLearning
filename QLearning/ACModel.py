@@ -5,7 +5,7 @@ from numpy.matrixlib.defmatrix import matrix
 import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.keras import layers
-
+import time
 
 class ActorCritic():
     def __init__(self,
@@ -72,9 +72,9 @@ class ActorCritic():
     #     return models
 
     def forward(self, node_state, map_state, idx):
-        # actions, value = self.agent_models[idx]([node_state, map_state])
-        # print('GO HERE 2')
+        # stime = time.time()
         actions, value = self.target_model([node_state, map_state])
+        # print(f'forwardpass: {time.time() - stime}')
         return actions, value
 
     def update_weights(self):
@@ -99,19 +99,24 @@ class ActorCritic():
     def backprop(self, action_probs_history, critic_value_history, returns, tape):
         actor_losses = []
         critic_losses = []
+        stime = time.time()
         for i in range(self.num_node):
             history = zip(action_probs_history[i], critic_value_history[i], returns[i])
             for log_prob, value, ret in history:
                 diff = ret - value
                 actor_losses.append(-log_prob * diff)
                 critic_losses.append(self.loss_func(tf.expand_dims(ret, 0), tf.expand_dims(value, 0)))
-
+        print(f'prepare loss time: {time.time() - stime}')
+        stime = time.time()
         # Backpropagation
         loss_value = sum(actor_losses) + sum(critic_losses)
         # print(loss_value)
+        print(f'loss val time: {time.time() - stime}')
+        stime = time.time()
         grads = tape.gradient(loss_value, self.target_model.trainable_variables)
         self.optimizer.apply_gradients(zip(grads, self.target_model.trainable_variables))
-
+        print(f'app gradient time: {time.time() - stime}')
+        
     def reset_action_step(self):
         for i in range(self.num_node): 
             self.action_steps[i] = 0

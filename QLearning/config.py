@@ -1,6 +1,6 @@
-N_EPISODE = 1001  # The number of episodes for training
+N_EPISODE = 1  # The number of episodes for training
 MAX_STEP = 3000  # The number of steps for each episode
-MAX_SIMULATE_TIME = 35000
+MAX_SIMULATE_TIME = 1
 BATCH_SIZE = 32  # The number of experiences for each replay
 MEMORY_SIZE = 10000  # The size of the batch for storing experiences
 # After this number of episodes, the DQN model is saved for testing later.
