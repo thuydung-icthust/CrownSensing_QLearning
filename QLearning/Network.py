@@ -68,7 +68,7 @@ class Network:
             n_ovl += np.argwhere(full_load[i_min:i_max, j_min:j_max]).shape[0]
             full_load[i_min:i_max, j_min:j_max] = 1
             if is_sent[m] == 1:
-                self.covering_state[i_min:i_max, j_min:j_max] = 1
+                self.covering_state[i_min:i_max, j_min:j_max] = self.step_length
 
         tot = np.argwhere(full_load).shape[0]
         actual = np.argwhere(self.covering_state).shape[0]
