@@ -1,3 +1,4 @@
+from numpy.core.numeric import full
 from getdata import read_data
 from GnbServer import GnbServer
 import Parameter as para
@@ -20,8 +21,11 @@ class Network:
         self.max_x = max_x
         self.max_y = max_y
         self.radius = radius
-        self.map_grid = get_grid_boundary(self.max_x, self.max_y, self.min_x, self.min_y)
-        self.not_tracking = np.zeros((para.n_size * para.n_size, 1))
+        self.covering_state = np.zeros((para.n_size, para.n_size))
+        self.unit_x = (self.max_x - self.min_x) / para.n_size
+        self.unit_y = (self.max_y - self.min_y) / para.n_size
+        self.radius_x = (int) (self.radius / self.unit_x)
+        self.radius_y = (int) (self.radius / self.unit_y)
 
     def get_prob(self):
         prob_list = [0.0 for i in range(0, self.num_node)]
@@ -45,19 +49,42 @@ class Network:
     def communicate(self, com_func=communicate_func):
         return com_func(self)
 
-    def run_per_second(self, optimizer=None, com_func=communicate_func, log_file="./log/logfile.txt"):
-        return self.communicate(com_func)
+    def run_per_second(self):
+        self.covering_state = np.clip(self.covering_state - 1, 0, self.step_length)
+        # return self.communicate(com_func)
 
+    def regenerate_cover_map(self, is_sent):
+        full_load = np.zeros((para.n_size, para.n_size))
+        n_ovl = 0
+        for m in range(self.num_node):
+            x = self.list_node[m].latitude
+            y = self.list_node[m].longitude
+            ith = (int)((x - self.min_x) / self.unit_x)
+            i_max = np.minimum(ith + self.radius_x, para.n_size - 1)
+            i_min = np.maximum(ith - self.radius_x, 0)
+            jth = (int)((y - self.min_y) / self.unit_y)
+            j_max = np.minimum(jth + self.radius_y, para.n_size - 1)
+            j_min = np.maximum(jth - self.radius_y, 0)
+            n_ovl += np.argwhere(full_load[i_min:i_max, j_min:j_max]).shape[0]
+            full_load[i_min:i_max, j_min:j_max] = 1
+            if is_sent[m] == 1:
+                self.covering_state[i_min:i_max, j_min:j_max] = 1
+
+        tot = np.argwhere(full_load).shape[0]
+        actual = np.argwhere(self.covering_state).shape[0]
+
+        return actual/ tot, n_ovl / tot
     def simulate(self, start_t=0, margin_time=None, optimizer="dqn", com_func=None, acted_agent=[], delta_time=36000, test=False, logfile="./log/logfile.txt"):
         t = start_t
         while(t < delta_time + start_t):
             self.update_node_position(t)
-
+            self.run_per_second()
             if t == start_t:
-                is_sent = self.run_per_second(com_func=com_func, log_file=logfile)
+                is_sent = self.communicate(com_func)
+                cover_area, overlap_area = self.regenerate_cover_map(is_sent)
                 # start_time = time.time()
-                cover_area, overlap_area = calculate_area_v6(is_sent, self.list_node,self.radius**2,100)
-                reward = get_reward_v2(self, acted_agent, cover_area, margin_time)
+                # cover_area, overlap_area = calculate_area_v6(is_sent, self.list_node,self.radius**2,para.n_size**2)
+                reward = get_reward_v2(self, acted_agent, cover_area, margin_time, is_sent)
 
                 if self.gnb.total_receiving != 0:
                     uniform_sent_ratio = tf.convert_to_tensor(
@@ -147,3 +174,7 @@ if __name__ == '__main__':
     start_time = time.time()
     print(calculate_area_v6(is_sent, net.list_node,net.radius**2,100))
     print(f'execution time 3: {time.time() - start_time}')
+
+    start_time = time.time()
+    print(net.regenerate_cover_map(is_sent))
+    print(f'execution time 4: {time.time() - start_time}')

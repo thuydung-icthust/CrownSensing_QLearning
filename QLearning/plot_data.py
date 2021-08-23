@@ -60,9 +60,18 @@ def plot_map():
 
     plt.show()
 
+def plot_circle():
+    inputfile = "input/carname.txt"
+    total_node, nodes, min_x, max_x, min_y, max_y, radi = read_data(inputfile)
+    import matplotlib.patches as pt
+    for node_i in nodes:
+        cir = pt.Circle((node_i.location_list[1, 0], node_i.location_list[2, 0]), radius=radi, fill=False)
+        plt.gcf().gca().add_artist(cir)
+    plt.show()
 
 if __name__ == '__main__':
     # plot_reward('Data/data_20210806-2101.csv')
     # plot_cover_area('Data/data_20210806-2101.csv')
-    plot_test()
+    # plot_test()
     # plot_map()
+    plot_circle()

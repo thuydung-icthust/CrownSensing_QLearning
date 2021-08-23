@@ -154,26 +154,21 @@ def calculate_cover_area(net, idx, is_sent):
 
     return factor1
 
-def get_reward_v2(net, acted_agent, factor1, delta_t, logfile="log/dqn_logfile.txt"):
+def get_reward_v2(net, acted_agent, factor1, delta_t, is_sent, logfile="log/dqn_logfile.txt"):
     rewards = [0 for i in range(net.num_node)]
 
     for idx in acted_agent:
-        # factor1 = calculate_cover_area(net, idx, is_sent)  # cover area, take into account the overlapping area
         if net.gnb.total_receiving != 0:
             factor2 = abs((net.gnb.msg_from_node[idx] / net.gnb.total_receiving) -
                           (1 / net.num_node))  # sent ratio / uniform ratio
         else:
             factor2 = 0
-        if delta_t == 0:
-            factor3 = 0
-        else:
-            factor3 = net.gnb.msg_from_node[idx] / delta_t
-
-        # if (factor1 > 0.85):  # if the cover factor is small, add additional weight to this factor to push it up
-        #     rewards[idx] = para.thetab * factor1 - para.gammab * factor2 - para.sigmab * factor3
+        # if delta_t == 0:
+        #     factor3 = 0
         # else:
+            # factor3 = net.gnb.msg_from_node[idx] / delta_t
+        factor3 = is_sent[idx]
         rewards[idx] = para.theta * factor1 - para.gamma * factor2 - para.sigma * factor3
-        # print(f'factor 1: {factor1} factor 2: {factor2} factor 3: {factor3}')
     return rewards
 
 
@@ -194,7 +189,6 @@ def get_reward_v2(net, acted_agent, factor1, delta_t, logfile="log/dqn_logfile.t
 
 
 def reset_tracking(net):
-    net.not_tracking = np.zeros((para.n_size * para.n_size, 1))
     net.gnb.msg_from_node = [0 for i in range(0, net.gnb.total_node)]
     net.gnb.total_receiving = 0
 

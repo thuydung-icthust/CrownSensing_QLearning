@@ -51,7 +51,7 @@ def read_data(filename="./input/carname.txt"):
         # print(positions.shape)
         positions[1,:] = positions[1,:] / max(max_x, abs(min_x))
         positions[2,:] = positions[2,:] / max(max_y, abs(min_y))
-        node = Node(car_name=name, location_list=node_pos[index], id=index)
+        node = Node(car_name=name, location_list=positions, id=index)
         node.description()
         nodes.append(node)
 
