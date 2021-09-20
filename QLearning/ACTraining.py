@@ -52,7 +52,7 @@ terminate = False
 
 Tmax = param.update_step
 To = param.cover_time
-Ro = param.cover_radius
+Ro = radius
 
 idx_start = 0
 if args.mode == 'resume' and args.filename != '':
@@ -130,15 +130,15 @@ for episode_i in range(idx_start, n_ep_max):
                         actions.append(0)   
                 # print(f'agent act time: {time.time() - start_time}')
                 # start_time = time.time()
-                # print(f'action_steps: {acAgent.action_steps}')
-                # print(f'actions: {actions}')
+                print(f'action_steps: {acAgent.action_steps}')
+                print(f'actions: {actions}')
                 reward, cover_area, overlap_area, sharing_factor, sent_factor = net.step(actions, acted_agents, t, t + delta_t, min(acAgent.action_steps), episode_i, test=True)
                 delta_t += min(acAgent.action_steps) - t - delta_t
                 # print(f'env step time: {time.time() - start_time}')
                 # start_time = time.time()
                 
-                # print(f'reward: {reward}')
-                # print(f'cover_area: {cover_area}')
+                print(f'reward: {reward}')
+                print(f'cover_area: {cover_area}')
                 avg_reward = 0
                 for i in acted_agents:
                     avg_reward += reward[i]

@@ -76,7 +76,7 @@ class Network:
         return actual/ tot, n_ovl / tot
     def simulate(self, start_t=0, margin_time=None, optimizer="dqn", com_func=None, acted_agent=[], delta_time=36000, test=False, logfile="./log/logfile.txt"):
         t = start_t
-        while(t < delta_time + start_t):
+        while(t < delta_time):
             self.update_node_position(t)
             self.run_per_second()
             if t == start_t:
