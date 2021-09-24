@@ -100,7 +100,7 @@ for episode_i in range(idx_start, n_ep_max):
                 for i in range(param.num_car):
                     if (delta_t + t == acAgent.action_steps[i]):
                         acted_agents.append(i)
-                        map_state = acAgent.knowledges[i].build_matrix_state(acAgent.action_steps[i])
+                        map_state = acAgent.knowledges[i].build_matrix_state(acAgent.action_steps[i] - t)
                         map_state = tf.convert_to_tensor(map_state, dtype=tf.float32)
                         # print(f'build matrix: {time.time() - start_time}')
                         # start_time = time.time()
@@ -132,7 +132,7 @@ for episode_i in range(idx_start, n_ep_max):
                 # start_time = time.time()
                 print(f'action_steps: {acAgent.action_steps}')
                 print(f'actions: {actions}')
-                reward, cover_area, overlap_area, sharing_factor, sent_factor = net.step(actions, acted_agents, t, t + delta_t, min(acAgent.action_steps), episode_i, test=True)
+                reward, cover_area, overlap_area, sharing_factor, sent_factor = net.step(actions, acted_agents, t + delta_t, min(acAgent.action_steps), episode_i, test=True)
                 delta_t += min(acAgent.action_steps) - t - delta_t
                 # print(f'env step time: {time.time() - start_time}')
                 # start_time = time.time()

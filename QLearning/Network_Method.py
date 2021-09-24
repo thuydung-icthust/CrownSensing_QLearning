@@ -154,7 +154,7 @@ def calculate_cover_area(net, idx, is_sent):
 
     return factor1
 
-def get_reward_v2(net, acted_agent, factor1, delta_t, is_sent, logfile="log/dqn_logfile.txt"):
+def get_reward_v2(net, acted_agent, factor1, is_sent, logfile="log/dqn_logfile.txt"):
     rewards = [0 for i in range(net.num_node)]
 
     for idx in acted_agent:

@@ -74,7 +74,7 @@ class Network:
         actual = np.argwhere(self.covering_state).shape[0]
 
         return actual/ tot, n_ovl / tot
-    def simulate(self, start_t=0, margin_time=None, optimizer="dqn", com_func=None, acted_agent=[], delta_time=36000, test=False, logfile="./log/logfile.txt"):
+    def simulate(self, start_t=0, optimizer="dqn", com_func=None, acted_agent=[], delta_time=36000, test=False, logfile="./log/logfile.txt"):
         t = start_t
         while(t < delta_time):
             self.update_node_position(t)
@@ -84,7 +84,7 @@ class Network:
                 cover_area, overlap_area = self.regenerate_cover_map(is_sent)
                 # start_time = time.time()
                 # cover_area, overlap_area = calculate_area_v6(is_sent, self.list_node,self.radius**2,para.n_size**2)
-                reward = get_reward_v2(self, acted_agent, cover_area, margin_time, is_sent)
+                reward = get_reward_v2(self, acted_agent, cover_area, is_sent)
 
                 if self.gnb.total_receiving != 0:
                     uniform_sent_ratio = tf.convert_to_tensor(
@@ -139,15 +139,14 @@ class Network:
         for node in self.list_node:
             node.update_prob(0)
 
-    def step(self, action, acted_agent, margin_time, current_time, delta_time, ep, optimizer="dqn", test=False):
+    def step(self, action, acted_agent, current_time, delta_time, ep, optimizer="dqn", test=False):
         self.update_nodes_prob(action, acted_agent)
 
         # t = 0
         # while t < self.step_length:
         #     self.run_per_second(t, communicate_func)
         #     t+= 1
-        delta_t = current_time - margin_time
-        return self.simulate(start_t=current_time, margin_time=delta_t, com_func=communicate_func,
+        return self.simulate(start_t=current_time, com_func=communicate_func,
                              delta_time= delta_time, acted_agent=acted_agent, logfile="./log/logfile_" + str(ep) + ".txt", optimizer=optimizer, test=test)
 
 
