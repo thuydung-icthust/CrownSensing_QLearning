@@ -85,22 +85,22 @@ for episode_i in range(idx_start, n_ep_max):
         with tf.GradientTape() as tape:
             # print(f'gradient taping: {time.time() - start_time}')
             # start_time = time.time()
-            delta_t = 0
             # pass down data for each worker
             for i in range(param.num_car):
                 acAgent.knowledges[i].update_infos(state[:, :2], state[:, 2:])
 
+            delta_t = min(acAgent.action_steps) - t
+            prev_t = t
             print('[TRAINING...]')
             while delta_t < Tmax:
                 state = tf.convert_to_tensor(state, dtype=tf.float32)
                 actions = []
                 acted_agents = []
-                # print(f'convert state: {time.time() - start_time}')
-                # start_time = time.time()
+
                 for i in range(param.num_car):
                     if (delta_t + t == acAgent.action_steps[i]):
                         acted_agents.append(i)
-                        map_state = acAgent.knowledges[i].build_matrix_state(acAgent.action_steps[i] - t)
+                        map_state = acAgent.knowledges[i].build_matrix_state(acAgent.action_steps[i] - prev_t)
                         map_state = tf.convert_to_tensor(map_state, dtype=tf.float32)
                         # print(f'build matrix: {time.time() - start_time}')
                         # start_time = time.time()
@@ -130,14 +130,16 @@ for episode_i in range(idx_start, n_ep_max):
                         actions.append(0)   
                 # print(f'agent act time: {time.time() - start_time}')
                 # start_time = time.time()
-                print(f'action_steps: {acAgent.action_steps}')
-                print(f'actions: {actions}')
-                reward, cover_area, overlap_area, sharing_factor, sent_factor = net.step(actions, acted_agents, t + delta_t, min(acAgent.action_steps), episode_i, test=True)
-                delta_t += min(acAgent.action_steps) - t - delta_t
+                prev_t = t + delta_t
+                # print(f'action_steps: {acAgent.action_steps}')
+                # print(f'acted agents: {acted_agents}')
+                # print(f'actions: {actions}')
+                reward, cover_area, overlap_area, sharing_factor, sent_factor = net.step(actions, acted_agents, prev_t, min(acAgent.action_steps), episode_i, test=True)
+                delta_t += min(acAgent.action_steps) - prev_t
                 # print(f'env step time: {time.time() - start_time}')
                 # start_time = time.time()
                 
-                print(f'reward: {reward}')
+                # print(f'reward: {reward}')
                 print(f'cover_area: {cover_area}')
                 avg_reward = 0
                 for i in acted_agents:
@@ -145,7 +147,7 @@ for episode_i in range(idx_start, n_ep_max):
                     actor_rewards_history[i].append(reward[i])
 
                 avg_reward /= len(acted_agents)
-                # print(f'rewards: {reward}')
+                print(f'avg rewards: {avg_reward}')
 
                 next_state = net.get_state()
                 terminate = net.check_terminate(t + delta_t)

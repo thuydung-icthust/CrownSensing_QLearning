@@ -1,8 +1,8 @@
 import numpy as np
 
-theta = 0.75
+theta = 0.85
 gamma = 0.05
-sigma = 0.2
+sigma = 0.1
 
 thetab = 0.9
 gammab = 0.05
