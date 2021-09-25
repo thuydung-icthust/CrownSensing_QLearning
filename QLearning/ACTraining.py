@@ -37,9 +37,9 @@ now = datetime.datetime.now()  # Getting the latest datetime
 # Defining header for the save file
 header = ["Episode", "Reward", "Running_reward", "Cover_area", "Sharing_factor", "Sent_pkg"]
 filename = "Data/data_" + now.strftime("%Y%m%d-%H%M") + ".csv"
-with open(filename, 'w') as f:
-    pd.DataFrame(columns=header).to_csv(
-        f, encoding='utf-8', index=False, header=True)
+# with open(filename, 'w') as f:
+#     pd.DataFrame(columns=header).to_csv(
+#         f, encoding='utf-8', index=False, header=True)
 
 total_node, nodes, min_x, max_x, min_y, max_y, radius = read_data(inputfile)
 gnb = GnbServer(total_node=total_node)
@@ -92,6 +92,7 @@ for episode_i in range(idx_start, n_ep_max):
             delta_t = min(acAgent.action_steps) - t
             prev_t = t
             print('[TRAINING...]')
+            print(f'action_steps {t}: {acAgent.action_steps}')
             while delta_t < Tmax:
                 state = tf.convert_to_tensor(state, dtype=tf.float32)
                 actions = []
@@ -123,7 +124,8 @@ for episode_i in range(idx_start, n_ep_max):
                         else:
                             new_step = int(1 / ((1 / To) + (velocity / (2 * Ro))))
                         rmd = int(new_step / param.step_length)
-                        acAgent.action_steps[i] = t + delta_t + (1 + rmd) * param.step_length
+                        acAgent.action_steps[i] = t + delta_t + int(new_step)
+                        # acAgent.action_steps[i] = t + delta_t + (1 + rmd) * param.step_length
                         # print(f'update action step: {time.time() - start_time}')
                         # start_time = time.time()
                     else:

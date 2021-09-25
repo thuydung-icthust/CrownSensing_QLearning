@@ -1,8 +1,9 @@
 import numpy as np
 
-theta = 0.85
-gamma = 0.05
-sigma = 0.1
+theta = 0.8
+ovl = 0.05
+gamma = 0.1
+sigma = 0.05
 
 thetab = 0.9
 gammab = 0.05
@@ -15,7 +16,7 @@ input_dim = 16
 n_size = 100
 num_car = 15
 
-cover_radius = 200
+cover_radius = 1000
 cover_time = 60  # To
 update_step = 240  # Tmax
 step_length = 10

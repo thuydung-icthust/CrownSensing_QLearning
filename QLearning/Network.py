@@ -49,12 +49,13 @@ class Network:
     def communicate(self, com_func=communicate_func):
         return com_func(self)
 
-    def run_per_second(self):
+    def run_per_second(self, com_func):
         self.covering_state = np.clip(self.covering_state - 1, 0, self.step_length)
-        # return self.communicate(com_func)
+        # print(np.argwhere(self.covering_state))
+        return self.communicate(com_func)
 
     def regenerate_cover_map(self, is_sent):
-        full_load = np.zeros((para.n_size, para.n_size))
+        full_load = np.copy(self.covering_state)
         n_ovl = 0
         for m in range(self.num_node):
             x = self.list_node[m].latitude
@@ -65,9 +66,10 @@ class Network:
             jth = (int)((y - self.min_y) / self.unit_y)
             j_max = np.minimum(jth + self.radius_y, para.n_size - 1)
             j_min = np.maximum(jth - self.radius_y, 0)
-            n_ovl += np.argwhere(full_load[i_min:i_max, j_min:j_max]).shape[0]
+            # n_ovl += np.argwhere(full_load[i_min:i_max, j_min:j_max]).shape[0]
             full_load[i_min:i_max, j_min:j_max] = 1
             if is_sent[m] == 1:
+                n_ovl += np.argwhere(self.covering_state[i_min:i_max, j_min:j_max]).shape[0]
                 self.covering_state[i_min:i_max, j_min:j_max] = self.step_length
 
         tot = np.argwhere(full_load).shape[0]
@@ -79,13 +81,12 @@ class Network:
         print(f'time ellapse: {delta_time - start_t}')
         while(t < delta_time):
             self.update_node_position(t)
-            self.run_per_second()
             if t == start_t:
                 is_sent = self.communicate(com_func)
                 cover_area, overlap_area = self.regenerate_cover_map(is_sent)
                 # start_time = time.time()
                 # cover_area, overlap_area = calculate_area_v6(is_sent, self.list_node,self.radius**2,para.n_size**2)
-                reward = get_reward_v2(self, acted_agent, cover_area, is_sent)
+                reward = get_reward_v2(self, acted_agent, cover_area, overlap_area, is_sent)
 
                 if self.gnb.total_receiving != 0:
                     uniform_sent_ratio = tf.convert_to_tensor(
@@ -100,6 +101,7 @@ class Network:
                 self.reset_node_prob()
                 # print(f'calculate logic time: {time.time() - start_time}')
 
+            self.run_per_second(com_func)
             t += 1
 
         if test:

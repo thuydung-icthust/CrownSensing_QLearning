@@ -154,7 +154,7 @@ def calculate_cover_area(net, idx, is_sent):
 
     return factor1
 
-def get_reward_v2(net, acted_agent, factor1, is_sent, logfile="log/dqn_logfile.txt"):
+def get_reward_v2(net, acted_agent, cover_area, ovl_area, is_sent, logfile="log/dqn_logfile.txt"):
     rewards = [0 for i in range(net.num_node)]
 
     for idx in acted_agent:
@@ -162,13 +162,10 @@ def get_reward_v2(net, acted_agent, factor1, is_sent, logfile="log/dqn_logfile.t
             factor2 = abs((net.gnb.msg_from_node[idx] / net.gnb.total_receiving) -
                           (1 / net.num_node))  # sent ratio / uniform ratio
         else:
-            factor2 = 0
-        # if delta_t == 0:
-        #     factor3 = 0
-        # else:
-            # factor3 = net.gnb.msg_from_node[idx] / delta_t
+            factor2 = 1
+
         factor3 = is_sent[idx]
-        rewards[idx] = para.theta * factor1 - para.gamma * factor2 - para.sigma * factor3
+        rewards[idx] = para.theta * cover_area - para.ovl * ovl_area - para.gamma * factor2 - para.sigma * factor3
     return rewards
 
 
